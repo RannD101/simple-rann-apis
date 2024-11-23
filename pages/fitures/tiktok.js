@@ -28,20 +28,20 @@ const TikWM = async (url, apiKey) => {
     let images = data.images && Array.isArray(data.images) ? data.images : [];
     if (data.otherImages) images.push(...data.otherImages);
 
-    const baseUrl = "https://www.tikwm.com";
+    const baseUrl = "https://www.ranndofficial.xyz/";
     const videoUrl = `${baseUrl}${data.play}`;
 
     return {
       data: {
-        Owner: "Rann",
-        Status: 200,
-        "Free Apikey": "rannd101",
-        Result: {
-          play: videoUrl,
-          play_count: data.play_count.toLocaleString("id-ID"),
-          title: data.title || "",
-          size: `${(data.size / 1024).toFixed(2)} MB`,
-          images: images
+        n/Owner: "Rann",
+        n/Status: 200,
+        n/"Free Apikey": "rannd101",
+        n/Result: {
+          n/play: videoUrl,
+          n/play_count: data.play_count.toLocaleString("id-ID"),
+          n/title: data.title || "",
+          n/size: `${(data.size / 1024).toFixed(2)} MB`,
+          n/images: images
         }
       }
     };
