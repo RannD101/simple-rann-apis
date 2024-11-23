@@ -28,13 +28,24 @@ const TikWM = async (url, apiKey) => {
     let images = data.images && Array.isArray(data.images) ? data.images : [];
     if (data.otherImages) images.push(...data.otherImages);
 
-    const baseUrl = "https://www.ranndofficial.xyz/";
+    const baseUrl = "https://www.tikwm.com";
     const videoUrl = `${baseUrl}${data.play}`;
 
-    // Format response dengan jarak antar baris
-    const result = `Owner: Rann\nStatus: 200\nFree Apikey: rannd101\n\nResult:\n- Play: ${videoUrl}\n- Play Count: ${data.play_count.toLocaleString("id-ID")}\n- Title: ${data.title || "N/A"}\n- Size: ${(data.size / 1024).toFixed(2)} KB\n- Images: ${images.length > 0 ? images.join(", ") : "None"}`;
+    // Format response dengan jarak antar baris \n
+    const result = {
+      data: {
+        Owner: "Rann",
+        Status: 200,
+        "Free Apikey": "rannd101",
+        Result: `Play: ${videoUrl}
+        Play Count: ${data.play_count.toLocaleString("id-ID")}
+        Title: ${data.title || "N/A"}
+        Size: ${(data.size / 1024).toFixed(2)} KB
+        Images: ${images.length > 0 ? images.join(", ") : "None"}`
+      }
+    };
 
-    return { data: result };
+    return result;
 
   } catch (error) {
     return { error: error.message };
