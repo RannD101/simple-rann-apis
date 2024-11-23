@@ -1,79 +1,87 @@
 const express = require("express");
+const axios = require("axios");
 const session = require("express-session");
 const path = require("path");
-const bodyParser = require("body-parser");
+const bodyParser = require('body-parser');
 const { limit, checkBanned } = require("../declaration/rateLimit.jsx");
 const isAuthenticated = require("../declaration/autentikasi.jsx");
+const TikWM = require("../pages/fitures/tiktok.js"); // Pastikan path ke TikWM.js sesuai
 
-// Inisialisasi aplikasi Express
 const app = express();
 
-// Middleware global
 app.use(checkBanned);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(
-  session({
-    secret: "komtolllll", // Gunakan secret yang lebih aman untuk produksi
+app.use(session({
+    secret: 'komtolllll',
     resave: false,
     saveUninitialized: true,
-    cookie: { maxAge: 3600000 }, // 1 jam
-  })
-);
+    cookie: { maxAge: 3600000 }
+}));
 
-/* === Rute Halaman === */
+/* !=== PAGE ===! */
 app.get("/", limit, (req, res) => {
-  res.sendFile(path.join(__dirname, "../pages/404.html"));
+    res.sendFile(path.join(__dirname, "../pages/404.html"));
 });
 
 app.get("/login", limit, (req, res) => {
-  res.sendFile(path.join(__dirname, "../pages/login.html"));
+    res.sendFile(path.join(__dirname, "../pages/login.html"));
 });
 
 app.get("/profile", limit, isAuthenticated, (req, res) => {
-  res.sendFile(path.join(__dirname, "../pages/profile.html"));
+    res.sendFile(path.join(__dirname, "../pages/profile.html"));
 });
 
-/* === Rute Endpoint Fitur === */
-app.post("/register", (req, res) => {
-  const registerHandler = require("../declaration/register.jsx");
-  registerHandler(req, res);
+/* = ENDPOINT FITURE = */
+app.post('/register', (req, res) => {
+    require("../declaration/register.jsx")(req, res);
 });
 
-app.post("/login", (req, res) => {
-  const loginHandler = require("../declaration/login.jsx");
-  loginHandler(req, res);
+app.post('/login', (req, res) => {
+    require("../declaration/login.jsx")(req, res);
 });
 
 app.get("/logout", (req, res) => {
-  const logoutHandler = require("../declaration/logout.jsx");
-  logoutHandler(req, res);
+    require("../declaration/logout.jsx")(req, res);
 });
 
 app.get("/prof", isAuthenticated, (req, res) => {
-  const profileHandler = require("../declaration/profile.jsx");
-  profileHandler(req, res);
+    require("../declaration/profile.jsx")(req, res);
 });
 
-/* === Rute Fitur Unduhan === */
 app.get("/blekbok", limit, async (req, res) => {
-  const blackboxHandler = require("../pages/fitures/blackbox.js");
-  await blackboxHandler(req, res);
+    require("../pages/fitures/blackbox.js")(req, res);
 });
 
+// Endpoint TikTok Downloader
 app.get("/tiktokdl", limit, async (req, res) => {
-  const TikWM = require("../pages/fitures/tiktok.js");
-  await TikWM(req, res);
+    const { url, apiKey } = req.query;
+
+    if (!url) {
+        return res.status(400).json({ error: "Url tidak ditemukan" });
+    }
+    if (!apiKey) {
+        return res.status(403).json({ error: "API Key dibutuhkan" });
+    }
+
+    try {
+        const result = await TikWM(url, apiKey);
+        if (result.error) {
+            return res.status(500).json({ error: result.error });
+        }
+        res.status(200).json(result);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Terjadi kesalahan internal" });
+    }
 });
 
 app.get("/instagramdl", limit, async (req, res) => {
-  const instagramHandler = require("../pages/fitures/instagram.js");
-  await instagramHandler(req, res);
+    require("../pages/fitures/instagram.js")(req, res);
 });
 
-/* === Penanganan 404 === */
-app.use((req, res) => {
-  res.status(404).sendFile(path.join(__dirname, "../pages/404.html"));
+app.use((req, res, next) => {
+    res.status(404).sendFile(path.join(__dirname, "../pages/404.html"));
 });
 
 module.exports = app;
