@@ -1,3 +1,5 @@
 module.exports = [
-  "rannd101"
-]
+  "rann", 
+  "rannd101",
+  "gratis"
+];
