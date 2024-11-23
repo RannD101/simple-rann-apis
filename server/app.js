@@ -69,7 +69,8 @@ app.get("/tiktokdl", limit, async (req, res) => {
         if (result.error) {
             return res.status(500).json({ error: result.error });
         }
-        res.status(200).json(result);
+        res.setHeader('Content-Type', 'text/plain'); // Mengatur header untuk respons berformat teks
+        res.status(200).send(result.data); // Mengirim data dengan format string
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: "Terjadi kesalahan internal" });
