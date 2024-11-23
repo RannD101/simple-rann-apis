@@ -69,7 +69,9 @@ app.get("/tiktokdl", limit, async (req, res) => {
         if (result.error) {
             return res.status(500).json({ error: result.error });
         }
-        res.status(200).json(result);
+
+        // Kirimkan hasil dengan indentasi
+        res.status(200).send(JSON.stringify(result, null, 4)); // 4 spaces for indentation
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: "Terjadi kesalahan internal" });
