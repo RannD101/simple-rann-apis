@@ -1,5 +1,5 @@
-const axios = require("axios");
-const allowedApiKeys = require("../../declaration/arrayKey.jsx");
+const axios = require("axios")
+const allowedApiKeys = require("../../declaration/arrayKey.jsx")
 
 const TikWM = async (url) => {
   try {
