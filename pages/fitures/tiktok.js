@@ -37,11 +37,7 @@ const TikWM = async (url, apiKey) => {
         Owner: "Rann",
         Status: 200,
         "Free Apikey": "rannd101",
-        Result: `Play: ${videoUrl}
-        Play Count: ${data.play_count.toLocaleString("id-ID")}
-        Title: ${data.title || "N/A"}
-        Size: ${(data.size / 1024).toFixed(2)} KB
-        Images: ${images.length > 0 ? images.join(", ") : "None"}`
+        Result: `Play: ${videoUrl}, Play Count: ${data.play_count.toLocaleString("id-ID")}, Title: ${data.title || "N/A"}, Size: ${(data.size / 1024).toFixed(2)} KB, Images: ${images.length > 0 ? images.join(", ") : "None"}`
       }
     };
 
