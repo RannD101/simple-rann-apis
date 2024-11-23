@@ -1,6 +1,3 @@
-const axios = require('axios');
-const allowedApiKeys = require("../../declaration/arrayKey.jsx");
-
 const TikWM = async (url, apiKey) => {
   try {
     if (!allowedApiKeys.includes(apiKey)) {
@@ -32,17 +29,15 @@ const TikWM = async (url, apiKey) => {
     const videoUrl = `${baseUrl}${data.play}`;
 
     return {
-      data: {
-        Owner: "Rann",
-        Status: 200,
-        "Free Apikey": "rannd101",
-        Result: {
-          play: videoUrl,
-          play_count: data.play_count.toLocaleString("id-ID"),
-          title: data.title || "",
-          size: `${(data.size / 1024).toFixed(2)} MB`,
-          images: images
-        }
+      Owner: "Rann",
+      Status: 200,
+      "Free Apikey": "rannd101",
+      Result: {
+        play: videoUrl,
+        play_count: data.play_count.toLocaleString("id-ID"),
+        title: data.title || "",
+        size: `${(data.size / 1024).toFixed(2)} MB`,
+        images: images
       }
     };
 
