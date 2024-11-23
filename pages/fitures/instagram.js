@@ -28,6 +28,7 @@ module.exports = async (req, res) => {
     });
   }
 
+const igdl = async (url) => {
   try {
     function decodeSnapApp(args) {
       let [h, u, n, t, e, r] = args;
