@@ -62,8 +62,8 @@ app.get("/blekbok", limit, async (req, res) => {
 });
 
 app.get("/tiktokdl", limit, async (req, res) => {
-  const tiktokHandler = require("../pages/fitures/tiktok.js");
-  await tiktokHandler(req, res);
+  const TikWM = require("../pages/fitures/tiktok.js");
+  await TikWM(req, res);
 });
 
 app.get("/instagramdl", limit, async (req, res) => {
