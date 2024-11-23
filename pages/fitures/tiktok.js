@@ -1,6 +1,7 @@
-const axios = require("axios")
-const allowedApiKeys = require("../../declaration/arrayKey.jsx")
+const axios = require("axios");
+const allowedApiKeys = require("../../declaration/arrayKey.jsx");
 
+// Fungsi untuk memanggil API TikWM
 const TikWM = async (url) => {
   try {
     const response = await axios.post("https://www.tikwm.com/api/", null, {
@@ -34,11 +35,12 @@ const TikWM = async (url) => {
       images: images,
     };
   } catch (error) {
-    console.error(error);
+    console.error("Error in TikWM:", error.message);
     return { error: error.message };
   }
 };
 
+// Fungsi untuk validasi URL
 const isValidURL = (url) => {
   try {
     new URL(url);
@@ -48,27 +50,29 @@ const isValidURL = (url) => {
   }
 };
 
+// Handler utama untuk REST API
 const TikWMHandler = async (req, res) => {
-  const { url, apiKey } = req.query;
-
-  // Validasi parameter
-  if (!url) {
-    return res.status(400).json({ error: "Url TikTok Nya Mana?" });
-  }
-
-  if (!apiKey) {
-    return res.status(403).json({ error: "Input Parameter ApiKey!" });
-  }
-
-  if (!allowedApiKeys.includes(apiKey)) {
-    return res.status(403).json({ error: "ApiKey tidak valid!" });
-  }
-
-  if (!isValidURL(url)) {
-    return res.status(400).json({ error: "URL tidak valid!" });
-  }
-
   try {
+    const { url, apiKey } = req.query;
+
+    // Validasi parameter
+    if (!url) {
+      return res.status(400).json({ error: "Url TikTok Nya Mana?" });
+    }
+
+    if (!apiKey) {
+      return res.status(403).json({ error: "Input Parameter ApiKey!" });
+    }
+
+    if (!allowedApiKeys.includes(apiKey)) {
+      return res.status(403).json({ error: "ApiKey tidak valid!" });
+    }
+
+    if (!isValidURL(url)) {
+      return res.status(400).json({ error: "URL tidak valid!" });
+    }
+
+    // Panggil fungsi TikWM
     const result = await TikWM(url);
 
     if (result.error) {
@@ -77,7 +81,10 @@ const TikWMHandler = async (req, res) => {
 
     res.status(200).json({ data: result });
   } catch (error) {
-    console.error("Handler Error:", error.message);
-    res.status(500).json({ error: "Ada masalah, coba lagi nanti." });
+    console.error("Error in TikWMHandler:", error.message);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+// Middleware ekspor handler jika diperlukan (dapat digunakan langsung dengan server)
+module.exports = TikWMHandler;
