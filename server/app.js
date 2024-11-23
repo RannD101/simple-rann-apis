@@ -65,11 +65,11 @@ app.get("/blekbok", limit, async (req, res) => {
     require("../pages/fitures/blackbox.js")(req, res)
 })
 
-app.get("/tiktokDL", limit, async (req, res) => {
+app.get("/tiktokdl", limit, async (req, res) => {
     require("../pages/fitures/tiktok.js")(req, res)
 })
 
-app.get("/instagramDL", limit, async (req, res) => {
+app.get("/instagramdl", limit, async (req, res) => {
     require("../pages/fitures/instagram.js")(req, res)
 })
 
