@@ -33,15 +33,15 @@ const TikWM = async (url, apiKey) => {
 
     return {
       data: {
-        n/Owner: "Rann",
-        n/Status: 200,
-        n/"Free Apikey": "rannd101",
-        n/Result: {
-          n/play: videoUrl,
-          n/play_count: data.play_count.toLocaleString("id-ID"),
-          n/title: data.title || "",
-          n/size: `${(data.size / 1024).toFixed(2)} MB`,
-          n/images: images
+        \nOwner: "Rann",
+        \nStatus: 200,
+        \n"Free Apikey": "rannd101",
+        \nResult: {
+          \nplay: videoUrl,
+          \nplay_count: data.play_count.toLocaleString("id-ID"),
+          \ntitle: data.title || "",
+          \nsize: `${(data.size / 1024).toFixed(2)} MB`,
+          \nimages: images
         }
       }
     };
