@@ -54,8 +54,8 @@ app.get("/blekbok", limit, async (req, res) => {
 });
 
 // Endpoint untuk fitur food
-app.get("/foodSearch", limit, async (req, res) => {
-  require("../pages/fitures/food")(req, res);
+app.get("/nutrisi", limit, async (req, res) => {
+  require("../pages/fitures/food.js")(req, res);
 });
 
 // Endpoint TikTok Downloader
