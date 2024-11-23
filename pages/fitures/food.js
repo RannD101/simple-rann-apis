@@ -5,7 +5,7 @@ const allowedApiKeys = require("../../declaration/arrayKey.jsx");
 module.exports = async (req, res) => {
   const { query, apiKey } = req.query;
 
-  // Validasi apikey
+  // Validasi API key
   if (!apiKey) {
     return res.status(403).json({
       status: false,
@@ -36,7 +36,9 @@ module.exports = async (req, res) => {
     // Mendapatkan hasil pencarian pertama
     const { data } = await axios.get(searchUrl);
     const $ = cheerio.load(data);
+
     const firstResultLink = $('a[href*="/kalori-gizi/umum/"]').attr("href");
+    const firstResultName = $('a[href*="/kalori-gizi/umum/"]').text().trim(); // Mendapatkan nama hasil pertama
 
     if (!firstResultLink) {
       return res.status(404).json({
@@ -63,6 +65,7 @@ module.exports = async (req, res) => {
       msg: "Success!",
       Owner: "RannD",
       details: {
+        query: firstResultName || "Hasil tidak memiliki nama", // Menambahkan nama hasil pencarian pertama
         kalori,
         lemak,
         karbohidrat,
