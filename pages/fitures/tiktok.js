@@ -1,44 +1,89 @@
-/*
-   * by balzz
-   * dont delate my wm
-   * follow more instagram: @iqstore78
-*/
-const axios = require("axios")
-const allowedApiKeys = require("../../declaration/arrayKey.jsx")
+const axios = require("axios");
+const allowedApiKeys = require("../../declaration/arrayKey.jsx");
 
-module.exports = async (req, res) => {
-  const urls = req.query.urls
-  const apiKey = req.query.apiKey
+const TikWM = async (url) => {
+  try {
+    const response = await axios.post("https://www.tikwm.com/api/", null, {
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+        Accept: "application/json, text/javascript, */*; q=0.01",
+        "User-Agent": "Postify/1.0.0",
+      },
+      params: {
+        url: url,
+        count: 12,
+        cursor: 0,
+        web: 1,
+        hd: 1,
+      },
+    });
 
-  if (!urls) {
-    return res.status(400).json({
-      error: "Url Tiktok Nya Mana?"
-    })
+    console.log("Response API:", response.data);
+
+    const data = response.data.data;
+    if (!data) throw new Error("Tidak ada response dari API");
+
+    let images = data.images && Array.isArray(data.images) ? data.images : [];
+    if (data.otherImages) images.push(...data.otherImages);
+
+    return {
+      play: data.play || null,
+      play_count: data.play_count,
+      title: data.title,
+      size: data.size,
+      images: images,
+    };
+  } catch (error) {
+    console.error(error);
+    return { error: error.message };
+  }
+};
+
+const isValidURL = (url) => {
+  try {
+    new URL(url);
+    return true;
+  } catch (_) {
+    return false;
+  }
+};
+
+const TikWMHandler = async (req, res) => {
+  const { url, apiKey } = req.query;
+
+  // Validasi parameter
+  if (!url) {
+    return res.status(400).json({ error: "Url TikTok Nya Mana?" });
   }
 
   if (!apiKey) {
-    return res.status(403).json({
-      error: "Input Parameter Apikey!"
-    })
-  } else if (!allowedApiKeys.includes(apiKey)) {
-    return res.status(403).json({
-      error: "apikey not found"
-    })
+    return res.status(403).json({ error: "Input Parameter ApiKey!" });
   }
 
-  let url = `https://api.agatz.xyz/api/tiktok?url=${urls}`
+  if (!allowedApiKeys.includes(apiKey)) {
+    return res.status(403).json({ error: "ApiKey tidak valid!" });
+  }
+
+  if (!isValidURL(url)) {
+    return res.status(400).json({ error: "URL tidak valid!" });
+  }
 
   try {
-    const response = await axios.get(url)
-    const data = response.data.data
-    const videoUrlNoWatermark = data.data.find(item => item.type === "nowatermark").url
+    const result = await TikWM(url);
 
-    res.status(200).json({
-      data: videoUrlNoWatermark
-    })
+    if (result.error) {
+      return res.status(500).json({ error: result.error });
+    }
+
+    res.status(200).json({ data: result });
   } catch (error) {
-    res.status(500).json({
-      error: "Ada masalah, coba lagi nanti"
-    })
+    console.error("Handler Error:", error.message);
+    res.status(500).json({ error: "Ada masalah, coba lagi nanti." });
   }
-}
+};
+
+module.exports = {
+  TikWM,
+  isValidURL,
+  TikWMHandler,
+};
