@@ -53,6 +53,11 @@ app.get("/blekbok", limit, async (req, res) => {
     require("../pages/fitures/blackbox.js")(req, res);
 });
 
+// Endpoint untuk fitur food
+app.get("/foodSearch", limit, async (req, res) => {
+  require("../pages/fitures/food")(req, res);
+});
+
 // Endpoint TikTok Downloader
 app.get("/tiktokdl", limit, async (req, res) => {
     const { url, apiKey } = req.query;
