@@ -1,6 +1,6 @@
 const axios = require("axios");
 const cheerio = require("cheerio");
-const allowedApiKeys = require("../declaration/arrayKey.jsx"); // Import daftar API Key yang diizinkan
+const allowedApiKeys = require("../../declaration/arrayKey.jsx");
 
 module.exports = async (req, res) => {
   const { query, apiKey } = req.query;
