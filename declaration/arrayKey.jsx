@@ -1,2 +1,3 @@
-const allowedApiKeys = ["Rann", "RannD", "rannd10"];
-module.exports = allowedApiKeys;
+module.exports = [
+  "rannd101"
+]
