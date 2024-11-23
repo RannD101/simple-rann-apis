@@ -81,9 +81,3 @@ const TikWMHandler = async (req, res) => {
     res.status(500).json({ error: "Ada masalah, coba lagi nanti." });
   }
 };
-
-module.exports = {
-  TikWM,
-  isValidURL,
-  TikWMHandler,
-};
