@@ -31,20 +31,10 @@ const TikWM = async (url, apiKey) => {
     const baseUrl = "https://www.ranndofficial.xyz/";
     const videoUrl = `${baseUrl}${data.play}`;
 
-    return {
-      data: {
-        \nOwner: "Rann",
-        \nStatus: 200,
-        \n"Free Apikey": "rannd101",
-        \nResult: {
-          \nplay: videoUrl,
-          \nplay_count: data.play_count.toLocaleString("id-ID"),
-          \ntitle: data.title || "",
-          \nsize: `${(data.size / 1024).toFixed(2)} MB`,
-          \nimages: images
-        }
-      }
-    };
+    // Format response dengan jarak antar baris
+    const result = `Owner: Rann\nStatus: 200\nFree Apikey: rannd101\n\nResult:\n- Play: ${videoUrl}\n- Play Count: ${data.play_count.toLocaleString("id-ID")}\n- Title: ${data.title || "N/A"}\n- Size: ${(data.size / 1024).toFixed(2)} KB\n- Images: ${images.length > 0 ? images.join(", ") : "None"}`;
+
+    return { data: result };
 
   } catch (error) {
     return { error: error.message };
