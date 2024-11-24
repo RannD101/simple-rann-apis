@@ -1,12 +1,10 @@
-const got = require("got");
-const cheerio = require("cheerio");
+const allowedApiKeys = require("../../declaration/arrayKey.jsx"); // Impor daftar API key yang diizinkan
 
-// Mendapatkan API keys yang diizinkan
-const allowedApiKeys = require("../../declaration/arrayKey.jsx");
+const cheerio = require("cheerio");
 
 const igdl = async (url, apikey) => {
   try {
-    // Cek apakah API key valid
+    // Periksa apakah API key valid
     if (!allowedApiKeys.includes(apikey)) {
       return { status: false, msg: "API key tidak valid atau tidak ditemukan." };
     }
@@ -62,6 +60,8 @@ const igdl = async (url, apikey) => {
       return getDecodedSnapSave(decodeSnapApp(getEncodedSnapApp(data)));
     }
 
+    // Melakukan request untuk mendapatkan data media
+    const got = (await import("got")).default; // Gunakan dynamic import untuk 'got'
     const html = await got
       .post("https://snapsave.app/action.php?lang=id", {
         headers: {
@@ -75,10 +75,12 @@ const igdl = async (url, apikey) => {
       })
       .text();
 
+    // Dekode hasil dari request
     const decode = decryptSnapSave(html);
     const $ = cheerio.load(decode);
     const results = [];
 
+    // Ambil data media
     if ($("table.table").length || $("article.media > figure").length) {
       const thumbnail = $("article.media > figure").find("img").attr("src");
       $("tbody > tr").each((_, el) => {
@@ -102,6 +104,7 @@ const igdl = async (url, apikey) => {
       });
     }
 
+    // Jika tidak ada hasil
     if (!results.length) {
       return { status: false, msg: "Tidak dapat menemukan media di link tersebut." };
     }
