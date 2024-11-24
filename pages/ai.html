@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rann APIs</title>
+  <style>
+    /* Reset CSS */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Arial', sans-serif;
+      height: 100vh;
+      margin: 0;
+      background: url('https://files.catbox.moe/g4q03x.jpg') no-repeat center center/cover; /* Gambar latar belakang */
+      color: #2f2f2f;
+    }
+
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 106%;
+      background-color: rgba(255, 255, 255, 0.4); /* Blur */
+      backdrop-filter: blur(4px);
+      z-index: -1;
+    }
+
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 20px;
+      height: 100%;
+    }
+
+    .left-section {
+      max-width: 50%;
+      text-align: left; /* Teks rata kiri */
+    }
+
+    .left-section h1 {
+      font-size: 3rem;
+      line-height: 1.2;
+    }
+
+    .left-section p {
+      margin-top: 10px;
+      font-size: 1rem;
+      color: #666;
+    }
+
+    .left-section span {
+      margin-top: 10px;
+      font-size: 0.9rem;
+      color: #000;
+    }
+
+    .right-section {
+      display: flex;
+      justify-content: flex-start; /* List lebih dekat ke teks */
+      align-items: center;
+      flex-direction: column;
+      margin-top: 0; /* Menghilangkan margin top */
+      width: 100%;
+    }
+
+    .right-section ul {
+      list-style: none;
+      width: 100%;
+      max-width: 400px;
+      padding: 0;
+    }
+
+    .right-section li {
+      margin: 10px 0; /* Menambahkan jarak antar list lebih rapat */
+    }
+
+    .right-section a {
+      display: block;
+      text-decoration: none;
+      color: #2f2f2f;
+      font-size: 1.2rem;
+      padding: 10px 20px;
+      border: 2px solid #2f2f2f;
+      border-radius: 5px;
+      width: 100%; /* Kotak memiliki panjang yang seragam */
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .right-section a:hover {
+      background-color: #2f2f2f;
+      color: #fff;
+    }
+
+    /* Responsiveness */
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+      }
+
+      .left-section {
+        max-width: 100%;
+        margin-bottom: 10px;
+      }
+
+      .right-section {
+        margin-top: 15px;
+      }
+    }
+
+    @media (orientation: portrait) {
+      .container {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .left-section {
+        align-self: flex-start;
+        margin-bottom: 10px;
+        text-align: left; /* Tetap rata kiri */
+      }
+
+      .right-section {
+        margin-top: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="left-section">
+      <h1>RANN<br>APIs</h1>
+      <p>FREE API WEBSITE BY RANN</p>
+      <span>Version: 1.0.2</span>
+    </div>
+    <div class="right-section">
+      <ul>
+        <li><a href="https://www.ranndofficial.xyz/ai/rannai?prompt=halo&apiKey=gratis" target="_blank">Nutrisi</a></li>
+      </ul>
+    </div>
+  </div>
+</body>
+</html>
