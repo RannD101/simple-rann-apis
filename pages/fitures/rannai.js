@@ -11,7 +11,7 @@ const model = genAI.getGenerativeModel({
 });
 
 module.exports = async (req, res) => {
-    const { prompt, apiKey } = req.body;
+    const { prompt, apiKey } = req.method === "POST" ? req.body : req.query;
 
     if (!apiKey) {
         return res.status(403).json({
