@@ -5,7 +5,7 @@ const igdl = async (req, res) => {
   try {
     // Validasi API Key
     const { apikey, url } = req.query;
-    const validApiKey = "your_api_key"; // Ganti dengan API key Anda
+    const validApiKey = "rannd101"; // Ganti dengan API key Anda
 
     if (!apikey || apikey !== validApiKey) {
       return res.status(401).json({
