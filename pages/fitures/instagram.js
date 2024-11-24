@@ -3,6 +3,7 @@ const axios = require("axios");
 module.exports = async (req, res) => {
     const { url, apiKey } = req.query;
 
+    // Periksa apakah parameter url dan apiKey ada
     if (!url) {
         return res.status(400).json({ error: "Url tidak ditemukan" });
     }
@@ -11,8 +12,8 @@ module.exports = async (req, res) => {
     }
 
     try {
-        // Pastikan menggunakan API yang benar, misalnya api.agatz
-        const response = await axios.get(`https://api.agatz.com/instagram?url=${encodeURIComponent(url)}`);
+        // Menggunakan URL yang benar untuk API
+        const response = await axios.get(`https://api.agatz.com/instagram?url=${encodeURIComponent(url)}&apiKey=${apiKey}`);
 
         if (response.data) {
             res.setHeader('Content-Type', 'application/json'); // Mengatur header untuk respons JSON
