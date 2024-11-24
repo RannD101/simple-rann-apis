@@ -40,8 +40,8 @@ app.get("/tools", limit, (req, res) => {
     res.sendFile(path.join(__dirname, "../pages/tools.html"));
 });
 
-app.get("/blekbok", limit, async (req, res) => {
-    require("../pages/fitures/blackbox.js")(req, res);
+app.get("/ai/rannai", limit, async (req, res) => {
+    require("../pages/fitures/rannai.js")(req, res);
 });
 
 // Endpoint untuk fitur food
