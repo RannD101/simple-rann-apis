@@ -1,52 +1,57 @@
-const axios = require("axios");
-const allowedApiKeys = require("../../declaration/arrayKey.jsx");
+const axios = require("axios")
+const allowedApiKeys = require("../../declaration/arrayKey.jsx")
 
 module.exports = async (req, res) => {
-  const { url, apiKey } = req.query;
-  
-  if (!url) {
+  // Menambahkan log untuk melihat parameter yang diterima dalam query string
+  console.log('Query Params:', req.query);
+
+  // Mendapatkan parameter `urls` dan `apiKey` dari query string
+  const { urls, apiKey } = req.query
+
+  if (!urls) {
     return res.status(400).json({
-      error: "Url IG tidak ditemukan!"
-    });
+      error: "Url Ig Nya Mana?" // Memberikan pesan jika parameter `urls` tidak ada
+    })
   }
 
   if (!apiKey || !allowedApiKeys.includes(apiKey)) {
     return res.status(403).json({
-      error: "Input parameter apikey diperlukan!"
-    });
+      error: "Input Parameter Apikey !" // Jika API key tidak valid atau tidak ada
+    })
   }
 
-  let apiUrl = `https://api.agatz.xyz/api/instagram?url=${url}`;
+  let apiUrl = `https://api.agatz.xyz/api/instagram?url=${urls}`
 
   try {
-    const response = await axios.get(apiUrl);
-    const videoData = response.data.data;
+    const response = await axios.get(apiUrl)
+    const data = response.data.data
 
-    if (!videoData || !videoData.videoLinks || videoData.videoLinks.length === 0) {
+    // Memeriksa apakah `videoLinks` tersedia dalam data
+    if (!data || !data.videoLinks || data.videoLinks.length === 0) {
       return res.status(404).json({
         error: "Video tidak ditemukan"
-      });
+      })
     }
 
-    const videoLinks = videoData.videoLinks.map((video) => ({
-      quality: video.quality.trim(),
-      url: video.url
-    }));
-
+    const videoLinks = data.videoLinks.map(link => ({
+      quality: link.quality.trim(),
+      url: link.url
+    }))
+    
     res.status(200).json({
       status: 200,
-      creator: "Rann",
+      creator: "Rann", // Nama pembuat tetap
       data: {
-        title: videoData.title || "Tidak ada judul",
-        description: videoData.description || "Tidak ada deskripsi",
-        videoLinks
+        title: data.title,
+        description: data.description || "", // Deskripsi kosong jika tidak ada
+        videoLinks: videoLinks
       }
-    });
-
+    })
   } catch (e) {
-    console.error(e);
+    console.error(e) // Log error untuk debugging
     res.status(500).json({
-      error: "Terjadi kesalahan saat memproses permintaan"
-    });
+      error: "Terjadi kesalahan internal",
+      details: e.message // Mengembalikan pesan error yang lebih rinci untuk debugging
+    })
   }
-};
+}
