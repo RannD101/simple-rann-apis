@@ -1,13 +1,13 @@
 const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 const cheerio = require("cheerio");
+const allowedApiKeys = require("../../declaration/arrayKey.jsx"); // Import array API key yang diizinkan
 
 const igdl = async (req, res) => {
   try {
     // Validasi API Key
     const { apikey, url } = req.query;
-    const validApiKey = "rannd101"; // Ganti dengan API key Anda
 
-    if (!apikey || apikey !== validApiKey) {
+    if (!apikey || !allowedApiKeys.includes(apikey)) {
       return res.status(401).json({
         status: false,
         msg: "API key tidak valid atau tidak ditemukan.",
