@@ -1,4 +1,4 @@
-const got = require("got");
+const got = require("got").default;
 const cheerio = require("cheerio");
 
 const igdl = async (url) => {
