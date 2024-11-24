@@ -2,9 +2,11 @@ const axios = require("axios")
 const allowedApiKeys = require("../../declaration/arrayKey.jsx")
 
 module.exports = async (req, res) => {
-  // Mendapatkan parameter `urls` dan `apiKey` dari query string
+  // Menambahkan log untuk melihat parameter yang diterima dalam query string
+  console.log('Query Params:', req.query);
+
   const url = req.query.urls
-  const apiKey = req.query.apiKey // API key yang dikirim dalam query parameter
+  const apiKey = req.query.apiKey
 
   if (!url) {
     return res.status(400).json({
@@ -18,13 +20,12 @@ module.exports = async (req, res) => {
     })
   }
 
-  // URL untuk API eksternal menggunakan parameter `urls` yang diterima
   let apiUrl = `https://api.agatz.xyz/api/instagram?url=${url}`
 
   try {
     const response = await axios.get(apiUrl)
     const data = response.data.data
-    
+
     // Memeriksa apakah `videoLinks` tersedia dalam data
     if (!data || !data.videoLinks || data.videoLinks.length === 0) {
       return res.status(404).json({
