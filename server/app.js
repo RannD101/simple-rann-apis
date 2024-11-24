@@ -9,6 +9,9 @@ const TikWM = require("../pages/fitures/tiktok.js"); // Pastikan path ke TikWM.j
 
 const app = express();
 
+app.set('json spaces', 2);
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(checkBanned);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
