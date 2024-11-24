@@ -1,6 +1,6 @@
 const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 const cheerio = require("cheerio");
-const allowedApiKeys = require("../../declaration/arrayKey.jsx"); // Import array API key yang diizinkan
+const allowedApiKeys = require("../../declaration/arrayKey.jsx"); // Mengimpor array API key
 
 const igdl = async (req, res) => {
   try {
