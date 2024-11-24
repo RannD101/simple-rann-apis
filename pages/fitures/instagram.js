@@ -1,28 +1,25 @@
-const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
+const got = require("got");
 const cheerio = require("cheerio");
-const allowedApiKeys = require("../../declaration/arrayKey.jsx"); // Mengimpor array API key
 
-const igdl = async (req, res) => {
+// Mendapatkan API keys yang diizinkan
+const allowedApiKeys = require("../../declaration/arrayKey.jsx");
+
+const igdl = async (url, apikey) => {
   try {
-    // Validasi API Key
-    const { url, apiKey } = req.query;
-
-    if (!apiKey || !allowedApiKeys.includes(apiKey)) {
-      return res.status(401).json({
-        status: false,
-        msg: "API key tidak valid atau tidak ditemukan.",
-      });
+    // Cek apakah API key valid
+    if (!allowedApiKeys.includes(apikey)) {
+      return { status: false, msg: "API key tidak valid atau tidak ditemukan." };
     }
 
-    // Validasi URL
+    // Memeriksa apakah URL valid
     if (!url) {
-      return res.status(400).json({
-        status: false,
-        msg: "Parameter 'url' wajib diisi.",
-      });
+      return { status: false, msg: "URL tidak valid. Masukkan URL yang benar." };
+    }
+    if (!url.includes("instagram.com")) {
+      return { status: false, msg: "URL tidak valid. Harap masukkan URL dari Instagram." };
     }
 
-    // Fungsi decoding (tidak berubah)
+    // Fungsi untuk mendekode data
     function decodeSnapApp(args) {
       let [h, u, n, t, e, r] = args;
       function decode(d, e, f) {
@@ -65,20 +62,19 @@ const igdl = async (req, res) => {
       return getDecodedSnapSave(decodeSnapApp(getEncodedSnapApp(data)));
     }
 
-    // Fetch data dari SnapSave
-    const response = await fetch("https://snapsave.app/action.php?lang=id", {
-      method: "POST",
-      headers: {
-        accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-        "content-type": "application/x-www-form-urlencoded",
-        origin: "https://snapsave.app",
-        referer: "https://snapsave.app/id",
-        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36",
-      },
-      body: new URLSearchParams({ url }),
-    });
+    const html = await got
+      .post("https://snapsave.app/action.php?lang=id", {
+        headers: {
+          accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+          "content-type": "application/x-www-form-urlencoded",
+          origin: "https://snapsave.app",
+          referer: "https://snapsave.app/id",
+          "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36",
+        },
+        form: { url },
+      })
+      .text();
 
-    const html = await response.text();
     const decode = decryptSnapSave(html);
     const $ = cheerio.load(decode);
     const results = [];
@@ -107,26 +103,12 @@ const igdl = async (req, res) => {
     }
 
     if (!results.length) {
-      return res.status(404).json({
-        status: false,
-        msg: "Data tidak ditemukan.",
-      });
+      return { status: false, msg: "Tidak dapat menemukan media di link tersebut." };
     }
 
-    // Respon sukses
-    return res.status(200).json({
-      status: true,
-      msg: "Berhasil mengambil data.",
-      Owner: "RannD",
-      data: results,
-    });
+    return { status: true, data: results };
   } catch (e) {
-    // Respon error
-    return res.status(500).json({
-      status: false,
-      msg: "Terjadi kesalahan pada server.",
-      err: e.message,
-    });
+    return { status: false, msg: `Terjadi kesalahan: ${e.message}` };
   }
 };
 
