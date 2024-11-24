@@ -28,6 +28,18 @@ app.get("/dl", limit, (req, res) => {
     res.sendFile(path.join(__dirname, "../pages/dl.html"));
 });
 
+app.get("/random", limit, (req, res) => {
+    res.sendFile(path.join(__dirname, "../pages/random.html"));
+});
+
+app.get("/ai", limit, (req, res) => {
+    res.sendFile(path.join(__dirname, "../pages/ai.html"));
+});
+
+app.get("/tools", limit, (req, res) => {
+    res.sendFile(path.join(__dirname, "../pages/tools.html"));
+});
+
 app.get("/blekbok", limit, async (req, res) => {
     require("../pages/fitures/blackbox.js")(req, res);
 });
@@ -66,7 +78,7 @@ app.get("/dl/instagramdl", limit, async (req, res) => {
 });
 
 app.use((req, res, next) => {
-    res.status(404).sendFile(path.join(__dirname, "../pages/404.html"));
+    res.status(404).sendFile(path.join(__dirname, "../pages/home.html"));
 });
 
 module.exports = app;
