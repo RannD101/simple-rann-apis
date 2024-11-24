@@ -1,8 +1,10 @@
-const got = require("got").default;
 const cheerio = require("cheerio");
 
 const igdl = async (url) => {
   try {
+    const got = (await import("got")).default;
+
+    // Fungsi decoding dan scraping tetap sama
     function decodeSnapApp(args) {
       let [h, u, n, t, e, r] = args;
       function decode(d, e, f) {
