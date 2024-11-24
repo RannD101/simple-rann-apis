@@ -1,23 +1,8 @@
-const allowedApiKeys = require("../../declaration/arrayKey.jsx"); // Impor daftar API key yang diizinkan
-
+const got = require("got");
 const cheerio = require("cheerio");
 
-const igdl = async (url, apikey) => {
+const igdl = async (url) => {
   try {
-    // Periksa apakah API key valid
-    if (!allowedApiKeys.includes(apikey)) {
-      return { status: false, msg: "API key tidak valid atau tidak ditemukan." };
-    }
-
-    // Memeriksa apakah URL valid
-    if (!url) {
-      return { status: false, msg: "URL tidak valid. Masukkan URL yang benar." };
-    }
-    if (!url.includes("instagram.com")) {
-      return { status: false, msg: "URL tidak valid. Harap masukkan URL dari Instagram." };
-    }
-
-    // Fungsi untuk mendekode data
     function decodeSnapApp(args) {
       let [h, u, n, t, e, r] = args;
       function decode(d, e, f) {
@@ -60,8 +45,6 @@ const igdl = async (url, apikey) => {
       return getDecodedSnapSave(decodeSnapApp(getEncodedSnapApp(data)));
     }
 
-    // Melakukan request untuk mendapatkan data media
-    const got = (await import("got")).default; // Gunakan dynamic import untuk 'got'
     const html = await got
       .post("https://snapsave.app/action.php?lang=id", {
         headers: {
@@ -75,12 +58,10 @@ const igdl = async (url, apikey) => {
       })
       .text();
 
-    // Dekode hasil dari request
     const decode = decryptSnapSave(html);
     const $ = cheerio.load(decode);
     const results = [];
 
-    // Ambil data media
     if ($("table.table").length || $("article.media > figure").length) {
       const thumbnail = $("article.media > figure").find("img").attr("src");
       $("tbody > tr").each((_, el) => {
@@ -104,14 +85,10 @@ const igdl = async (url, apikey) => {
       });
     }
 
-    // Jika tidak ada hasil
-    if (!results.length) {
-      return { status: false, msg: "Tidak dapat menemukan media di link tersebut." };
-    }
-
-    return { status: true, data: results };
+    if (!results.length) return { msg: "Blank data" };
+    return { data: results };
   } catch (e) {
-    return { status: false, msg: `Terjadi kesalahan: ${e.message}` };
+    return { msg: e.message };
   }
 };
 
