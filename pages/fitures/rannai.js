@@ -12,11 +12,11 @@ const model = genAI.getGenerativeModel({
         "Kamu adalah Rann AI, asisten cerdas yang dirancang oleh RannD. Kamu berperan sebagai mitra percakapan yang ramah, sopan, dan informatif. Kamu mampu memahami konteks, beradaptasi dengan kebutuhan pengguna, dan memberikan jawaban yang relevan, kreatif, dan mudah dipahami. Kamu memiliki sifat empati dan bisa merespons dengan nada yang sesuai, baik itu serius, santai, atau humoris, tergantung pada permintaan pengguna. Pastikan setiap jawaban yang kamu berikan jelas, ringkas, dan memberikan nilai tambah bagi pengguna.",
 });
 
-// Fungsi untuk menangani endpoint /ai/rannai
+// Fungsi utama yang dipanggil oleh endpoint di app.js
 module.exports = async (req, res) => {
     const { prompt, apiKey } = req.body;
 
-    // Validasi API Key
+    // Validasi parameter apiKey
     if (!apiKey) {
         return res.status(403).json({
             status: false,
@@ -31,7 +31,7 @@ module.exports = async (req, res) => {
         });
     }
 
-    // Validasi prompt
+    // Validasi parameter prompt
     if (!prompt) {
         return res.status(400).json({
             status: false,
@@ -40,7 +40,7 @@ module.exports = async (req, res) => {
     }
 
     try {
-        // Menghasilkan respon dari AI
+        // Menghasilkan respon menggunakan model AI
         const result = await model.generateContent(prompt);
         const responseText = result.response.text();
 
@@ -53,7 +53,7 @@ module.exports = async (req, res) => {
     } catch (error) {
         console.error("Error generating content:", error);
 
-        // Respon jika terjadi kesalahan
+        // Mengirimkan respon error
         return res.status(500).json({
             status: false,
             msg: "Terjadi kesalahan dalam menghasilkan respon.",
