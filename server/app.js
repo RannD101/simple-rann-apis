@@ -6,6 +6,8 @@ const bodyParser = require('body-parser');
 const { limit, checkBanned } = require("../declaration/rateLimit.jsx");
 const isAuthenticated = require("../declaration/autentikasi.jsx");
 const TikWM = require("../pages/fitures/tiktok.js"); // Pastikan path ke TikWM.js sesuai
+const cors = require("cors");
+app.use(cors());
 
 const app = express();
 
