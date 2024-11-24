@@ -2,7 +2,7 @@ const axios = require("axios");
 const allowedApiKeys = require("../../declaration/arrayKey.jsx");
 
 module.exports = async (req, res) => {
-  const apiKey = req.headers['api-key'] || req.query.apiKey;  // Extract apiKey from header or query parameter
+  const apiKey = req.headers['rannd101'] || req.query.apiKey;  // Extract apiKey from header or query parameter
   const urls = req.query.urls;
 
   // Log req.query to debug the incoming request
