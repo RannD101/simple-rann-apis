@@ -24,29 +24,8 @@ app.get("/", limit, (req, res) => {
     res.sendFile(path.join(__dirname, "../pages/home.html"));
 });
 
-app.get("/login", limit, (req, res) => {
-    res.sendFile(path.join(__dirname, "../pages/login.html"));
-});
-
-app.get("/profile", limit, isAuthenticated, (req, res) => {
-    res.sendFile(path.join(__dirname, "../pages/profile.html"));
-});
-
-/* = ENDPOINT FITURE = */
-app.post('/register', (req, res) => {
-    require("../declaration/register.jsx")(req, res);
-});
-
-app.post('/login', (req, res) => {
-    require("../declaration/login.jsx")(req, res);
-});
-
-app.get("/logout", (req, res) => {
-    require("../declaration/logout.jsx")(req, res);
-});
-
-app.get("/prof", isAuthenticated, (req, res) => {
-    require("../declaration/profile.jsx")(req, res);
+app.get("/dl", limit, (req, res) => {
+    res.sendFile(path.join(__dirname, "../pages/dl.html"));
 });
 
 app.get("/blekbok", limit, async (req, res) => {
@@ -54,12 +33,12 @@ app.get("/blekbok", limit, async (req, res) => {
 });
 
 // Endpoint untuk fitur food
-app.get("/nutrisi", limit, async (req, res) => {
+app.get("/random/nutrisi", limit, async (req, res) => {
   require("../pages/fitures/food.js")(req, res);
 });
 
 // Endpoint TikTok Downloader
-app.get("/tiktokdl", limit, async (req, res) => {
+app.get("/dl/tiktokdl", limit, async (req, res) => {
     const { url, apiKey } = req.query;
 
     if (!url) {
@@ -82,7 +61,7 @@ app.get("/tiktokdl", limit, async (req, res) => {
     }
 });
 
-app.get("/instagramdl", limit, async (req, res) => {
+app.get("/dl/instagramdl", limit, async (req, res) => {
     require("../pages/fitures/instagram.js")(req, res);
 });
 
