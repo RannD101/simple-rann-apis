@@ -21,7 +21,7 @@ app.use(session({
 
 /* !=== PAGE ===! */
 app.get("/", limit, (req, res) => {
-    res.sendFile(path.join(__dirname, "../pages/404.html"));
+    res.sendFile(path.join(__dirname, "../pages/home.html"));
 });
 
 app.get("/login", limit, (req, res) => {
