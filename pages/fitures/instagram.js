@@ -7,7 +7,7 @@ const igdl = async (req, res) => {
     // Validasi API Key
     const { url, apiKey } = req.query;
 
-    if (!apikey || !allowedApiKeys.includes(apikey)) {
+    if (!apiKey || !allowedApiKeys.includes(apikey)) {
       return res.status(401).json({
         status: false,
         msg: "API key tidak valid atau tidak ditemukan.",
