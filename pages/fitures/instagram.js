@@ -1,58 +1,44 @@
-const axios = require("axios");
-const allowedApiKeys = require("../../declaration/arrayKey.jsx");
+const axios = require("axios")
+const allowedApiKeys = require("../../declaration/arrayKey.jsx")
 
 module.exports = async (req, res) => {
-  const apiKey = req.headers['rannd101'] || req.query.apiKey;  // Extract apiKey from header or query parameter
-  const urls = req.query.urls;
-
-  // Log req.query to debug the incoming request
-  console.log(req.query);
-
+  const urls = req.query.urls
+  const apiKey = req.query.apiKey // Assuming the API key is passed as a query parameter
+  
   if (!urls) {
     return res.status(400).json({
-      error: "Url Instagram Mana?"
-    });
+      error: "Url Ig Nya Mana?"
+    })
   }
 
   if (!apiKey || !allowedApiKeys.includes(apiKey)) {
     return res.status(403).json({
-      error: "Input Parameter Apikey Tidak Valid!"
-    });
+      error: "Input Parameter Apikey !"
+    })
   }
 
-  const url = `https://api.agatz.xyz/api/instagram?url=${urls}`;
+  let url = `https://api.agatz.xyz/api/instagram?url=${urls}`
 
   try {
-    const response = await axios.get(url);
-
-    // Extract the video link from the API response
-    const videoLink = response.data.data.videoLinks[0]?.url;
+    const response = await axios.get(url)
+    const data = response.data.data
+    const videoLinks = data.videoLinks.map(link => ({
+      quality: link.quality.trim(), // Clean up extra spaces
+      url: link.url
+    }))
     
-    if (!videoLink) {
-      return res.status(404).json({
-        error: "Video link not found."
-      });
-    }
-
-    // Return the desired response format
     res.status(200).json({
       status: 200,
-      creator: "Rann",
+      creator: "Rann", // Static creator name
       data: {
-        title: response.data.data.title,
-        description: response.data.data.description,
-        videoLinks: [
-          {
-            quality: "download (640-1138p)", // You can adjust quality details as needed
-            url: videoLink
-          }
-        ]
+        title: data.title,
+        description: data.description || "", // Empty description if not available
+        videoLinks: videoLinks
       }
-    });
+    })
   } catch (e) {
-    console.error(e);  // Log the error for debugging
     res.status(500).json({
-      error: "Terjadi kesalahan internal"
-    });
+      error: "Ada masalah, coba lagi nanti"
+    })
   }
-};
+}
