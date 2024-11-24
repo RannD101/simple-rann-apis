@@ -5,7 +5,7 @@ const allowedApiKeys = require("../../declaration/arrayKey.jsx"); // Mengimpor a
 const igdl = async (req, res) => {
   try {
     // Validasi API Key
-    const { apikey, url } = req.query;
+    const { url, apiKey } = req.query;
 
     if (!apikey || !allowedApiKeys.includes(apikey)) {
       return res.status(401).json({
