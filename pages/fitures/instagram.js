@@ -7,7 +7,7 @@ module.exports = async (req, res) => {
         return res.status(400).json({ error: "Url tidak ditemukan" });
     }
     if (!apiKey) {
-        return res.status(403).json({ error: "API Key dibutuhkan" });
+        return res.status(403).json({ error: "APIKey dibutuhkan" });
     }
 
     try {
