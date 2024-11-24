@@ -76,28 +76,8 @@ app.get("/dl/tiktokdl", limit, async (req, res) => {
     }
 });
 
-const igdl = require("../pages/fitures/instagram.js");
-
 app.get("/dl/instagramdl", async (req, res) => {
-    const { url, apiKey } = req.query;
-
-    if (!apiKey) {
-        return res.status(403).json({ error: "API Key dibutuhkan" });
-    }
-
-    if (!url) {
-        return res.status(400).json({ error: "URL tidak ditemukan" });
-    }
-
-    try {
-        const result = await igdl(url);
-        if (result.msg === "Blank data") {
-            return res.status(404).json({ error: "Data tidak ditemukan" });
-        }
-        res.status(200).json(result);
-    } catch (error) {
-        res.status(500).json({ error: "Terjadi kesalahan internal", details: error.message });
-    }
+    require("../pages/fitures/instagram.js")(req, res);
 });
 
 app.use((req, res, next) => {
