@@ -28,7 +28,6 @@ module.exports = async (req, res) => {
     });
   }
 
-const igdl = async (url) => {
   try {
     function decodeSnapApp(args) {
       let [h, u, n, t, e, r] = args;
@@ -61,15 +60,28 @@ const igdl = async (url) => {
     }
 
     function getEncodedSnapApp(data) {
+      // Pastikan data yang diproses tidak undefined
+      if (!data || !data.includes("decodeURIComponent(escape(r))}(")) {
+        throw new Error("Encoded SnapApp data tidak valid.");
+      }
       return data.split("decodeURIComponent(escape(r))}(")[1].split("))")[0].split(",").map((v) => v.replace(/"/g, "").trim());
     }
 
     function getDecodedSnapSave(data) {
+      // Pastikan data yang diproses tidak undefined
+      if (!data || !data.includes('getElementById("download-section").innerHTML = "')) {
+        throw new Error("Decoded SnapSave data tidak valid.");
+      }
       return data.split('getElementById("download-section").innerHTML = "')[1].split('"; document.getElementById("inputData").remove(); ')[0].replace(/\\?/g, "");
     }
 
     function decryptSnapSave(data) {
-      return getDecodedSnapSave(decodeSnapApp(getEncodedSnapApp(data)));
+      // Menangani jika data tidak valid
+      try {
+        return getDecodedSnapSave(decodeSnapApp(getEncodedSnapApp(data)));
+      } catch (error) {
+        throw new Error("Error saat mendekode SnapSave: " + error.message);
+      }
     }
 
     // Mengambil HTML dari SnapSave
