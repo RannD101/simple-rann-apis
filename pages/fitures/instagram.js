@@ -1,4 +1,4 @@
-const axios = require("axios");
+const fetch = require('node-fetch');
 const cheerio = require("cheerio");
 const allowedApiKeys = require("../../declaration/arrayKey.jsx");
 
@@ -84,8 +84,9 @@ module.exports = async (req, res) => {
       }
     }
 
-    // Mengambil HTML dari SnapSave
-    const { data: html } = await axios.post("https://snapsave.app/action.php?lang=id", null, {
+    // Mengambil HTML dari SnapSave menggunakan fetch
+    const response = await fetch("https://snapsave.app/action.php?lang=id", {
+      method: "POST",
       headers: {
         accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
         "content-type": "application/x-www-form-urlencoded",
@@ -93,8 +94,10 @@ module.exports = async (req, res) => {
         referer: "https://snapsave.app/id",
         "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36",
       },
-      params: { url },
+      body: new URLSearchParams({ url }), // Menggunakan URLSearchParams untuk mengirimkan parameter form
     });
+
+    const html = await response.text(); // Mendapatkan teks HTML dari response
 
     const decode = decryptSnapSave(html);
     const $ = cheerio.load(decode);
