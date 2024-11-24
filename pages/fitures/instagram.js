@@ -14,7 +14,6 @@ module.exports = async (req, res) => {
         const response = await axios.get(`https://api.agatz.xyz/api/instagram`, {
             params: {
                 url,
-                apiKey,
             },
         });
 
