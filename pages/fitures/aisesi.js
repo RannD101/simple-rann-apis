@@ -1,7 +1,7 @@
 const { Configuration, OpenAIApi } = require("openai");
 
 // API Key OpenAI
-const apiKey = "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";
+const apiKey = "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";
 
 // Inisialisasi OpenAI
 const configuration = new Configuration({ apiKey });
@@ -32,7 +32,7 @@ async function handleAI(req, res) {
         // Jika sesi belum ada, buat sesi baru dengan pesan sistem awal
         if (!sessions[sessionId]) {
             sessions[sessionId] = [
-                { role: "system", content: "Kamu adalah asisten AI yang ramah dan informatif." },
+                { role: "system", content: "Kamu adalah Rann AI yang ramah dan informatif. Versimu Mungkin lebih lawas tapi kamu memiliki program mengingat bahasan sebelumnya" },
             ];
         }
 
