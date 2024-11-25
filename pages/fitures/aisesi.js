@@ -1,13 +1,7 @@
-const OpenAI = require('openai').OpenAI;
 const fs = require("fs");
 const path = require("path");
 
-// API Key OpenAI
-const openai = new OpenAI({
-    apiKey: "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", // Ganti dengan API key kamu
-});
-
-// Direktori sesi
+// Direktori untuk menyimpan sesi
 const sessionsDir = path.join(__dirname, "sessions");
 
 // Pastikan folder sesi ada
@@ -22,14 +16,14 @@ function getSession(sessionId) {
         const sessionData = JSON.parse(fs.readFileSync(sessionFile, "utf-8"));
         return sessionData.messages || [];
     }
-    return []; // Jika sesi belum ada, mulai dengan array kosong
+    return [];
 }
 
 // Fungsi untuk menyimpan sesi
 function saveSession(sessionId, messages) {
     const sessionFile = path.join(sessionsDir, `${sessionId}.json`);
     const sessionData = {
-        createdAt: Date.now(), // Tambahkan timestamp
+        createdAt: Date.now(),
         messages,
     };
     fs.writeFileSync(sessionFile, JSON.stringify(sessionData, null, 2));
@@ -44,15 +38,35 @@ function deleteOldSessions() {
         const sessionFilePath = path.join(sessionsDir, file);
         const sessionData = JSON.parse(fs.readFileSync(sessionFilePath, "utf-8"));
         if (sessionData.createdAt && now - sessionData.createdAt > 24 * 60 * 60 * 1000) {
-            fs.unlinkSync(sessionFilePath); // Hapus file sesi
+            fs.unlinkSync(sessionFilePath);
             console.log(`Deleted old session: ${file}`);
         }
     });
 }
 
-// Fungsi utama untuk menangani prompt AI
+// Fungsi untuk memuat modul OpenAI secara dinamis
+async function loadOpenAI() {
+    try {
+        // Dynamic import untuk modul ESM
+        const openaiModule = await import("openai");
+        return openaiModule.OpenAI;
+    } catch (error) {
+        console.error("Error loading OpenAI module:", error);
+        throw error;
+    }
+}
+
+// Fungsi utama untuk menangani AI
 async function handleAI(prompt, sessionId) {
     try {
+        // Muat modul OpenAI
+        const OpenAI = await loadOpenAI();
+
+        // Inisialisasi OpenAI
+        const openai = new OpenAI({
+            apiKey: "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", // Ganti dengan API key kamu
+        });
+
         // Ambil atau buat sesi
         const messages = getSession(sessionId);
 
@@ -61,10 +75,10 @@ async function handleAI(prompt, sessionId) {
 
         // Kirim permintaan ke OpenAI
         const response = await openai.chat.completions.create({
-            model: "gpt-4", // Pilih model yang sesuai
+            model: "gpt-4",
             messages: [
                 { role: "system", content: "Kamu adalah asisten AI yang ramah dan informatif." },
-                ...messages, // Tambahkan sesi sebelumnya
+                ...messages,
             ],
         });
 
@@ -96,9 +110,9 @@ setInterval(() => {
 
 // Contoh penggunaan
 (async () => {
-    const prompt = "Apa itu kecerdasan buatan?";
-    const sessionId = "abc123xyz"; // Session ID unik
-
+    const prompt = "Apa itu AI?";
+    const sessionId = "abc123xyz"; // ID sesi contoh
     const result = await handleAI(prompt, sessionId);
-    console.log(result); // { status: true, response: "..." }
+
+    console.log(result);
 })();
