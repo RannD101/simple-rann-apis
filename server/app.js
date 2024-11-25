@@ -47,6 +47,10 @@ app.get("/ai/rannai", limit, async (req, res) => {
     require("../pages/fitures/rannai.js")(req, res);
 });
 
+app.get("/ai/rannaisesi", limit, async (req, res) => {
+    require("../pages/fitures/aisesi.js")(req, res);
+});
+
 // Endpoint untuk fitur food
 app.get("/random/nutrisi", limit, async (req, res) => {
   require("../pages/fitures/food.js")(req, res);
