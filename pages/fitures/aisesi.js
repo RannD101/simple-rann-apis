@@ -1,4 +1,4 @@
-const { OpenAI } = require("openai");
+const OpenAI = require('openai').OpenAI;
 const fs = require("fs");
 const path = require("path");
 
