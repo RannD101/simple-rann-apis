@@ -9,13 +9,18 @@ async function loadOpenAI() {
     }
 }
 
+// Fungsi untuk memuat modul fs dan path secara dinamis
+async function loadFileSystemModules() {
+    const fs = await import("fs");
+    const path = await import("path");
+    return { fs, path };
+}
+
 // Direktori sesi sementara
-const fs = require("fs");
-const path = require("path");
 const sessionsDir = "/tmp/sessions"; // Direktori sementara di Vercel
 
 // Fungsi untuk membaca sesi
-async function getSession(sessionId) {
+async function getSession(sessionId, fs, path) {
     const sessionFile = path.join(sessionsDir, `${sessionId}.json`);
     if (fs.existsSync(sessionFile)) {
         const sessionData = JSON.parse(fs.readFileSync(sessionFile, "utf-8"));
@@ -25,7 +30,7 @@ async function getSession(sessionId) {
 }
 
 // Fungsi untuk menyimpan sesi
-async function saveSession(sessionId, messages) {
+async function saveSession(sessionId, messages, fs, path) {
     const sessionFile = path.join(sessionsDir, `${sessionId}.json`);
     const sessionData = {
         createdAt: Date.now(),
@@ -35,7 +40,7 @@ async function saveSession(sessionId, messages) {
 }
 
 // Fungsi untuk menghapus sesi lama
-async function deleteOldSessions() {
+async function deleteOldSessions(fs, path) {
     const now = Date.now();
     const sessionFiles = fs.readdirSync(sessionsDir);
 
@@ -49,21 +54,39 @@ async function deleteOldSessions() {
     });
 }
 
+// Fungsi untuk mengirim respons dengan status dan pesan
+function sendResponse(res, statusCode, status, msg, data = null) {
+    return res.status(statusCode).json({
+        status,
+        msg,
+        response: data,
+    });
+}
+
 // Fungsi utama untuk menangani permintaan AI
-async function handleAI(prompt, sessionId) {
+async function handleAI(req, res) {
+    const { prompt, sessionId } = req.method === "POST" ? req.body : req.query;
+
+    if (!prompt) {
+        return sendResponse(res, 400, false, "Parameter 'prompt' tidak ditemukan!");
+    }
+
     try {
         // Muat OpenAI SDK secara dinamis
         const { Configuration, OpenAIApi } = await loadOpenAI();
 
+        // Muat modul fs dan path
+        const { fs, path } = await loadFileSystemModules();
+
         // Inisialisasi OpenAI dengan API key
         const configuration = new Configuration({
-            apiKey: "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", // Ganti dengan API key kamu
+            apiKey: "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",
         });
 
         const openai = new OpenAIApi(configuration);
 
         // Ambil atau buat sesi
-        const messages = await getSession(sessionId);
+        const messages = await getSession(sessionId, fs, path);
 
         // Tambahkan prompt user ke sesi
         messages.push({ role: "user", content: prompt });
@@ -83,24 +106,21 @@ async function handleAI(prompt, sessionId) {
         messages.push({ role: "assistant", content: responseText });
 
         // Simpan sesi
-        await saveSession(sessionId, messages);
+        await saveSession(sessionId, messages, fs, path);
 
-        return {
-            status: true,
-            response: responseText,
-        };
+        return sendResponse(res, 200, true, "Success!", responseText);
     } catch (error) {
         console.error("Error generating AI response:", error);
-        return {
-            status: false,
-            error: error.message,
-        };
+        return sendResponse(res, 500, false, "Terjadi kesalahan dalam menghasilkan respon.", error.message);
     }
 }
 
 // Panggil pembersihan sesi setiap 1 jam
-setInterval(() => {
-    deleteOldSessions();
+setInterval(async () => {
+    // Muat modul fs dan path secara dinamis
+    const { fs, path } = await loadFileSystemModules();
+    deleteOldSessions(fs, path);
 }, 60 * 60 * 1000); // Setiap 1 jam
 
-// Contoh penggunaan
+// Ekspor fungsi handleAI untuk digunakan di server
+module.exports = handleAI;
