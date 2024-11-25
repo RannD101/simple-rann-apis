@@ -1,80 +1,117 @@
 const { Configuration, OpenAIApi } = require("openai");
+const fs = require("fs");
+const path = require("path");
 
-// API Key OpenAI
-const apiKey = "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";
-
-// Inisialisasi OpenAI
-const configuration = new Configuration({ apiKey });
+// Konfigurasi OpenAI
+const configuration = new Configuration({
+  apiKey: process.env.OPENAI_API_KEY, // API Key dari environment
+});
 const openai = new OpenAIApi(configuration);
 
-// Penyimpanan sesi di memori
-const sessions = {};
-
-// Fungsi utama untuk menangani permintaan REST API
-async function handleAI(req, res) {
-    const { prompt, sessionId } = req.method === "POST" ? req.body : req.query;
-
-    if (!prompt) {
-        return res.status(400).json({
-            status: false,
-            msg: "Parameter 'prompt' tidak ditemukan!",
-        });
-    }
-
-    if (!sessionId) {
-        return res.status(400).json({
-            status: false,
-            msg: "Parameter 'sessionId' diperlukan!",
-        });
-    }
-
-    try {
-        // Jika sesi belum ada, buat sesi baru dengan pesan sistem awal
-        if (!sessions[sessionId]) {
-            sessions[sessionId] = [
-                { role: "system", content: "Kamu adalah Rann AI yang ramah dan informatif. Versimu Mungkin lebih lawas tapi kamu memiliki program mengingat bahasan sebelumnya" },
-            ];
-        }
-
-        // Tambahkan pesan pengguna ke sesi
-        sessions[sessionId].push({ role: "user", content: prompt });
-
-        // Kirim permintaan ke OpenAI
-        const chatCompletion = await openai.createChatCompletion({
-            model: "gpt-3.5-turbo",
-            messages: sessions[sessionId],
-        });
-
-        const responseText = chatCompletion.data.choices[0].message.content;
-
-        // Tambahkan respons AI ke sesi
-        sessions[sessionId].push({ role: "assistant", content: responseText });
-
-        return res.status(200).json({
-            status: true,
-            msg: "Success!",
-            response: responseText,
-        });
-    } catch (error) {
-        console.error("Error generating AI response:", error);
-
-        return res.status(500).json({
-            status: false,
-            msg: "Terjadi kesalahan dalam menghasilkan respon.",
-            response: error.message,
-        });
-    }
+// Fungsi untuk menyimpan data ke session file di /tmp
+function saveSessionData(sessionId, data) {
+  const sessionFilePath = path.join("/tmp", `${sessionId}.json`);
+  
+  // Simpan data session ke file
+  fs.writeFileSync(sessionFilePath, JSON.stringify(data));
 }
 
-// Fungsi untuk membersihkan sesi otomatis setelah 24 jam
-setInterval(() => {
-    const now = Date.now();
-    for (const sessionId in sessions) {
-        if (sessions[sessionId].timestamp && now - sessions[sessionId].timestamp > 24 * 60 * 60 * 1000) {
-            delete sessions[sessionId];
-        }
-    }
-}, 60 * 60 * 1000); // Jalankan setiap 1 jam
+// Fungsi untuk membaca data session dari /tmp
+function loadSessionData(sessionId) {
+  const sessionFilePath = path.join("/tmp", `${sessionId}.json`);
+  
+  if (fs.existsSync(sessionFilePath)) {
+    return JSON.parse(fs.readFileSync(sessionFilePath));
+  }
+  
+  return null;
+}
 
-// Ekspor fungsi untuk digunakan di server
-module.exports = handleAI;
+// Fungsi untuk menghapus session setelah lebih dari 3 jam
+function deleteSessionIfExpired(sessionId) {
+  const sessionFilePath = path.join("/tmp", `${sessionId}.json`);
+  
+  if (fs.existsSync(sessionFilePath)) {
+    const sessionData = JSON.parse(fs.readFileSync(sessionFilePath));
+    
+    // Cek apakah sesi sudah lebih dari 3 jam
+    const currentTime = Date.now();
+    const sessionTimestamp = sessionData.timestamp;
+
+    // Jika lebih dari 3 jam (3 jam = 3 * 60 * 60 * 1000 ms)
+    if (currentTime - sessionTimestamp > 3 * 60 * 60 * 1000) {
+      fs.unlinkSync(sessionFilePath); // Hapus file sesi
+      console.log(`Session ${sessionId} telah dihapus karena sudah lebih dari 3 jam.`);
+    }
+  }
+}
+
+// Fungsi untuk melakukan percakapan dengan OpenAI
+const chatCompletion = async (prompt) => {
+  const response = await openai.createChatCompletion({
+    model: "gpt-3.5-turbo",
+    messages: [{ role: "user", content: prompt }],
+  });
+  return response.data.choices[0].message.content;
+};
+
+// Fungsi untuk menangani permintaan API
+module.exports = async (req, res) => {
+  const { prompt, sessionId } = req.body;  // Menerima sessionId dari body request
+
+  // Validasi session ID (misalnya harus alphanumeric dengan panjang 8-32 karakter)
+  const sessionIdRegex = /^[a-zA-Z0-9]{8,32}$/;
+  if (!sessionId || !sessionIdRegex.test(sessionId)) {
+    return res.status(400).json({
+      status: false,
+      msg: "Session ID tidak valid! Harus alphanumeric dan panjang 8-32 karakter.",
+    });
+  }
+
+  // Validasi parameter 'prompt'
+  if (!prompt) {
+    return res.status(400).json({
+      status: false,
+      msg: "Parameter 'prompt' tidak ditemukan!",
+    });
+  }
+
+  try {
+    // Hapus session yang sudah lebih dari 3 jam
+    deleteSessionIfExpired(sessionId);
+
+    // Cek apakah session ID sudah ada, jika ada muat data sebelumnya
+    const sessionData = loadSessionData(sessionId);
+
+    // Jika tidak ada data sebelumnya, buat session baru
+    if (!sessionData) {
+      saveSessionData(sessionId, { promptHistory: [], timestamp: Date.now() }); // Simpan history prompt dan timestamp untuk session baru
+    }
+
+    // Melakukan percakapan dengan OpenAI
+    const result = await chatCompletion(prompt);
+    
+    // Update data sesi dengan hasil percakapan
+    const updatedSessionData = loadSessionData(sessionId);
+    updatedSessionData.promptHistory.push({ prompt, response: result });
+
+    // Simpan data sesi setelah update
+    saveSessionData(sessionId, updatedSessionData);
+
+    // Kirim respon ke pengguna
+    res.status(200).json({
+      status: true,
+      msg: "Success!",
+      response: result,
+      sessionId: sessionId,
+      promptHistory: updatedSessionData.promptHistory,
+    });
+  } catch (error) {
+    console.error("Error generating content:", error);
+    res.status(500).json({
+      status: false,
+      msg: "Terjadi kesalahan dalam menghasilkan respon.",
+      response: error.message,
+    });
+  }
+};
