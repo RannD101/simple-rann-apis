@@ -30,7 +30,7 @@ module.exports = async (req, res) => {
             data: {
                 status: 200,
                 creator: "Rann",
-                data: response.data,
+                data: response.data.data,
             },
         });
     } catch (error) {
