@@ -11,10 +11,9 @@ module.exports = async (req, res) => {
     }
 
     try {
-        const response = await axios.get(`https://api.agatz.xyz/api/instagram`, {
+        const response = await axios.get(`https://api.agatz.xyz/api/threads`, {
             params: {
                 url,
-                apiKey,
             },
         });
 
@@ -27,7 +26,11 @@ module.exports = async (req, res) => {
 
         res.status(200).json({
             message: "Data berhasil diambil",
-            data: response.data,
+            data: {
+                status: 200,
+                creator: "Rann",
+                data: response.data,
+            },
         });
     } catch (error) {
         console.error("Error Instagram API:", error.message || error);
