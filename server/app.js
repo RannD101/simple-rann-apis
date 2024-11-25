@@ -88,6 +88,10 @@ app.get("/dl/threadsdl", async (req, res) => {
     require("../pages/fitures/thread.js")(req, res);
 });
 
+app.get("/dl/spotifydl", async (req, res) => {
+    require("../pages/fitures/spotifydl.js")(req, res);
+});
+
 app.use((req, res, next) => {
     res.status(404).sendFile(path.join(__dirname, "../pages/home.html"));
 });
