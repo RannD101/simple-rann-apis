@@ -7,13 +7,14 @@ module.exports = async (req, res) => {
         return res.status(400).json({ error: "Url tidak ditemukan" });
     }
     if (!apiKey) {
-        return res.status(403).json({ error: "APIKey dibutuhkan" });
+        return res.status(403).json({ error: "API Key dibutuhkan" });
     }
 
     try {
         const response = await axios.get(`https://api.agatz.xyz/api/instagram`, {
             params: {
                 url,
+                apiKey,
             },
         });
 
@@ -26,7 +27,11 @@ module.exports = async (req, res) => {
 
         res.status(200).json({
             message: "Data berhasil diambil",
-            data: response.data,
+            data: {
+                status: 200,
+                creator: "Rann",
+                data: response.data,
+            },
         });
     } catch (error) {
         console.error("Error Instagram API:", error.message || error);
