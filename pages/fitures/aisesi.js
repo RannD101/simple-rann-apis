@@ -1,9 +1,16 @@
 const { Configuration, OpenAIApi } = require("openai");
 
-// Objek untuk menyimpan sesi di memori
+// API Key OpenAI
+const apiKey = "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";
+
+// Inisialisasi OpenAI
+const configuration = new Configuration({ apiKey });
+const openai = new OpenAIApi(configuration);
+
+// Penyimpanan sesi di memori
 const sessions = {};
 
-// Fungsi utama untuk menangani permintaan AI
+// Fungsi utama untuk menangani permintaan REST API
 async function handleAI(req, res) {
     const { prompt, sessionId } = req.method === "POST" ? req.body : req.query;
 
@@ -22,13 +29,7 @@ async function handleAI(req, res) {
     }
 
     try {
-        // Inisialisasi OpenAI dengan API key
-        const configuration = new Configuration({
-            apiKey: "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",
-        });
-        const openai = new OpenAIApi(configuration);
-
-        // Buat sesi baru jika belum ada
+        // Jika sesi belum ada, buat sesi baru dengan pesan sistem awal
         if (!sessions[sessionId]) {
             sessions[sessionId] = [
                 { role: "system", content: "Kamu adalah asisten AI yang ramah dan informatif." },
@@ -65,7 +66,7 @@ async function handleAI(req, res) {
     }
 }
 
-// Fungsi untuk membersihkan sesi setelah 24 jam
+// Fungsi untuk membersihkan sesi otomatis setelah 24 jam
 setInterval(() => {
     const now = Date.now();
     for (const sessionId in sessions) {
@@ -73,7 +74,7 @@ setInterval(() => {
             delete sessions[sessionId];
         }
     }
-}, 60 * 60 * 1000); // Jalankan setiap jam
+}, 60 * 60 * 1000); // Jalankan setiap 1 jam
 
-// Ekspor fungsi handleAI untuk digunakan di server
+// Ekspor fungsi untuk digunakan di server
 module.exports = handleAI;
