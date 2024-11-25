@@ -72,7 +72,7 @@ async function handleAI(prompt, sessionId) {
 
         // Inisialisasi OpenAI
         const openai = new OpenAI({
-            apiKey: "sk-XXXXXXXXXXXXXXXXXXXXXX", // Ganti dengan API key kamu
+            apiKey: "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", // Ganti dengan API key kamu
         });
 
         // Ambil atau buat sesi
