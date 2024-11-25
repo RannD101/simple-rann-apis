@@ -1,5 +1,13 @@
-const fs = require("fs");
-const path = require("path");
+// Direktori untuk menyimpan sesi
+const fs = await import("fs");
+const path = await import("path");
+
+// Menentukan direktori dan path
+const { fileURLToPath } = await import("url");
+
+// Menentukan direktori dan path
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Direktori untuk menyimpan sesi
 const sessionsDir = path.join(__dirname, "sessions");
@@ -10,7 +18,7 @@ if (!fs.existsSync(sessionsDir)) {
 }
 
 // Fungsi untuk membaca atau membuat sesi
-function getSession(sessionId) {
+async function getSession(sessionId) {
     const sessionFile = path.join(sessionsDir, `${sessionId}.json`);
     if (fs.existsSync(sessionFile)) {
         const sessionData = JSON.parse(fs.readFileSync(sessionFile, "utf-8"));
@@ -20,7 +28,7 @@ function getSession(sessionId) {
 }
 
 // Fungsi untuk menyimpan sesi
-function saveSession(sessionId, messages) {
+async function saveSession(sessionId, messages) {
     const sessionFile = path.join(sessionsDir, `${sessionId}.json`);
     const sessionData = {
         createdAt: Date.now(),
@@ -30,7 +38,7 @@ function saveSession(sessionId, messages) {
 }
 
 // Fungsi untuk menghapus sesi lama
-function deleteOldSessions() {
+async function deleteOldSessions() {
     const now = Date.now();
     const sessionFiles = fs.readdirSync(sessionsDir);
 
@@ -64,11 +72,11 @@ async function handleAI(prompt, sessionId) {
 
         // Inisialisasi OpenAI
         const openai = new OpenAI({
-            apiKey: "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", // Ganti dengan API key kamu
+            apiKey: "sk-XXXXXXXXXXXXXXXXXXXXXX", // Ganti dengan API key kamu
         });
 
         // Ambil atau buat sesi
-        const messages = getSession(sessionId);
+        const messages = await getSession(sessionId);
 
         // Tambahkan prompt user ke sesi
         messages.push({ role: "user", content: prompt });
@@ -88,7 +96,7 @@ async function handleAI(prompt, sessionId) {
         messages.push({ role: "assistant", content: responseText });
 
         // Simpan sesi
-        saveSession(sessionId, messages);
+        await saveSession(sessionId, messages);
 
         return {
             status: true,
