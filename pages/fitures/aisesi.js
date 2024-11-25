@@ -1,13 +1,11 @@
-const { Configuration, OpenAIApi } = require("openai");
+const { OpenAI } = require("openai");
 const fs = require("fs");
 const path = require("path");
 
 // API Key OpenAI
-const apiKeyOpenAI = "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";
-const configuration = new Configuration({
-    apiKey: apiKeyOpenAI,
+const openai = new OpenAI({
+    apiKey: "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", // Ganti dengan API key kamu
 });
-const openai = new OpenAIApi(configuration);
 
 // Direktori sesi
 const sessionsDir = path.join(__dirname, "sessions");
@@ -62,18 +60,15 @@ async function handleAI(prompt, sessionId) {
         messages.push({ role: "user", content: prompt });
 
         // Kirim permintaan ke OpenAI
-        const response = await openai.createChatCompletion({
-            model: "gpt-4",
+        const response = await openai.chat.completions.create({
+            model: "gpt-4", // Pilih model yang sesuai
             messages: [
-                {
-                    role: "system",
-                    content: "Kamu adalah asisten AI yang ramah dan informatif.",
-                },
+                { role: "system", content: "Kamu adalah asisten AI yang ramah dan informatif." },
                 ...messages, // Tambahkan sesi sebelumnya
             ],
         });
 
-        const responseText = response.data.choices[0].message.content;
+        const responseText = response.choices[0].message.content;
 
         // Tambahkan respons AI ke sesi
         messages.push({ role: "assistant", content: responseText });
@@ -99,7 +94,11 @@ setInterval(() => {
     deleteOldSessions();
 }, 60 * 60 * 1000); // Setiap 1 jam
 
-module.exports = {
-    handleAI,
-    deleteOldSessions,
-};
+// Contoh penggunaan
+(async () => {
+    const prompt = "Apa itu kecerdasan buatan?";
+    const sessionId = "abc123xyz"; // Session ID unik
+
+    const result = await handleAI(prompt, sessionId);
+    console.log(result); // { status: true, response: "..." }
+})();
