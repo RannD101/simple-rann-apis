@@ -1,10 +1,22 @@
+// Pastikan untuk memuat modul secara dinamis
+async function loadOpenAI() {
+    try {
+        const { OpenAI } = await import("openai");
+        return OpenAI;
+    } catch (error) {
+        console.error("Error loading OpenAI module:", error);
+        throw error;
+    }
+}
+
+// Fungsi untuk mengelola sesi
 const fs = require("fs");
 const path = require("path");
 
-// Tentukan direktori sementara untuk menyimpan sesi di Vercel
-const sessionsDir = "/tmp/sessions";
+// Tentukan direktori sesi yang dapat digunakan dalam lingkungan server
+const sessionsDir = "/tmp/sessions"; // Direktori sementara di Vercel
 
-// Fungsi untuk membaca atau membuat sesi
+// Fungsi untuk membaca sesi
 async function getSession(sessionId) {
     const sessionFile = path.join(sessionsDir, `${sessionId}.json`);
     if (fs.existsSync(sessionFile)) {
@@ -39,24 +51,13 @@ async function deleteOldSessions() {
     });
 }
 
-// Fungsi untuk memuat modul OpenAI secara dinamis
-async function loadOpenAI() {
-    try {
-        const openaiModule = await import("openai");
-        return openaiModule.OpenAI;
-    } catch (error) {
-        console.error("Error loading OpenAI module:", error);
-        throw error;
-    }
-}
-
-// Fungsi utama untuk menangani AI
+// Fungsi utama untuk menangani permintaan AI
 async function handleAI(prompt, sessionId) {
     try {
-        // Muat modul OpenAI
+        // Muat modul OpenAI secara dinamis
         const OpenAI = await loadOpenAI();
 
-        // Inisialisasi OpenAI
+        // Inisialisasi OpenAI dengan API key
         const openai = new OpenAI({
             apiKey: "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", // Ganti dengan API key kamu
         });
