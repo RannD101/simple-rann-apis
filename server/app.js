@@ -47,8 +47,14 @@ app.get("/ai/rannai", limit, async (req, res) => {
     require("../pages/fitures/rannai.js")(req, res);
 });
 
-app.get("/ai/rannaisesi", limit, async (req, res) => {
-    require("../pages/fitures/aisesi.js")(req, res);
+app.post("/ai/rannaisesi", limit, async (req, res) => {
+    try {
+        // Menangani permintaan POST
+        require("../pages/fitures/aisesi.js")(req, res);
+    } catch (error) {
+        console.error("Error in /ai/rannaisesi endpoint:", error);
+        res.status(500).json({ status: false, msg: "Internal server error." });
+    }
 });
 
 // Endpoint untuk fitur food
