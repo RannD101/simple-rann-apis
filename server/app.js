@@ -52,6 +52,10 @@ app.get("/random/nutrisi", limit, async (req, res) => {
   require("../pages/fitures/food.js")(req, res);
 });
 
+app.get("/random/spotifySearch", limit, async (req, res) => {
+  require("../pages/fitures/spotify.js")(req, res);
+});
+
 // Endpoint TikTok Downloader
 app.get("/dl/tiktokdl", limit, async (req, res) => {
     const { url, apiKey } = req.query;
