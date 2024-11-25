@@ -3,11 +3,9 @@ async function loadDependencies() {
     // Melakukan dynamic import secara asinkron
     const fs = await import("fs");
     const path = await import("path");
-    const { fileURLToPath } = await import("url");
 
-    // Menentukan direktori dan path
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = path.dirname(__filename);
+    // Menentukan direktori dan path untuk CommonJS (tidak menggunakan import.meta)
+    const __dirname = path.resolve(); // Dapatkan direktori saat ini
 
     // Direktori untuk menyimpan sesi
     const sessionsDir = path.join(__dirname, "sessions");
