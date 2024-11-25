@@ -1,9 +1,9 @@
 const axios = require("axios");
 
 module.exports = async (req, res) => {
-    const { judul, apiKey } = req.query;
+    const { message, apiKey } = req.query;
 
-    if (!judul) {
+    if (!message) {
         return res.status(400).json({ error: "Masukan Judul Lagu" });
     }
     if (!apiKey) {
