@@ -1,6 +1,6 @@
 {
-  "name": "memek",
-  "version": "1.0.0",
+  "name": "rannapi",
+  "version": "1.0.5",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
