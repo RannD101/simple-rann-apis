@@ -57,7 +57,7 @@ const chatCompletion = async (prompt) => {
 
 // Fungsi untuk menangani permintaan API
 module.exports = async (req, res) => {
-  const { prompt, sessionId } = req.body;  // Menerima sessionId dari body request
+  const { prompt, sessionId } = req.method === "GET" ? req.query : req.body;  // Mengambil data dari query string jika GET request
 
   // Validasi session ID (misalnya harus alphanumeric dengan panjang 8-32 karakter)
   const sessionIdRegex = /^[a-zA-Z0-9]{8,32}$/;
