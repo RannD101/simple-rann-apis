@@ -1,13 +1,5 @@
 // Fungsi untuk memuat OpenAI SDK secara dinamis
-async function loadOpenAI() {
-    try {
-        const { Configuration, OpenAIApi } = await import("openai");
-        return { Configuration, OpenAIApi };
-    } catch (error) {
-        console.error("Error loading OpenAI module:", error);
-        throw error;
-    }
-}
+const { Configuration, OpenAIApi } = require("openai");
 
 // Fungsi untuk memuat modul fs dan path secara dinamis
 async function loadFileSystemModules() {
