@@ -80,6 +80,10 @@ app.get("/dl/instagramdl", async (req, res) => {
     require("../pages/fitures/instagram.js")(req, res);
 });
 
+app.get("/dl/threadsdl", async (req, res) => {
+    require("../pages/fitures/thread.js")(req, res);
+});
+
 app.use((req, res, next) => {
     res.status(404).sendFile(path.join(__dirname, "../pages/home.html"));
 });
