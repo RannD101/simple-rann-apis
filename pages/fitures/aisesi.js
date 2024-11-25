@@ -1,7 +1,7 @@
 const { Configuration, OpenAIApi } = require("openai");
 
 // API Key OpenAI
-const apiKey = "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";
+const apiKey = "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";
 
 // Inisialisasi OpenAI
 const configuration = new Configuration({ apiKey });
