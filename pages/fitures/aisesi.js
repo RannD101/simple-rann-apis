@@ -1,19 +1,17 @@
-// Pastikan untuk memuat modul secara dinamis
+// Fungsi untuk memuat OpenAI SDK secara dinamis
 async function loadOpenAI() {
     try {
-        const { OpenAI } = await import("openai");
-        return OpenAI;
+        const { Configuration, OpenAIApi } = await import("openai");
+        return { Configuration, OpenAIApi };
     } catch (error) {
         console.error("Error loading OpenAI module:", error);
         throw error;
     }
 }
 
-// Fungsi untuk mengelola sesi
+// Direktori sesi sementara
 const fs = require("fs");
-const path = require("path");
-
-// Tentukan direktori sesi yang dapat digunakan dalam lingkungan server
+const path = require("path");Configuration
 const sessionsDir = "/tmp/sessions"; // Direktori sementara di Vercel
 
 // Fungsi untuk membaca sesi
@@ -54,13 +52,15 @@ async function deleteOldSessions() {
 // Fungsi utama untuk menangani permintaan AI
 async function handleAI(prompt, sessionId) {
     try {
-        // Muat modul OpenAI secara dinamis
-        const OpenAI = await loadOpenAI();
+        // Muat OpenAI SDK secara dinamis
+        const { Configuration, OpenAIApi } = await loadOpenAI();
 
         // Inisialisasi OpenAI dengan API key
-        const openai = new OpenAI({
+        const configuration = new Configuration({
             apiKey: "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", // Ganti dengan API key kamu
         });
+
+        const openai = new OpenAIApi(configuration);
 
         // Ambil atau buat sesi
         const messages = await getSession(sessionId);
@@ -69,15 +69,15 @@ async function handleAI(prompt, sessionId) {
         messages.push({ role: "user", content: prompt });
 
         // Kirim permintaan ke OpenAI
-        const response = await openai.chat.completions.create({
-            model: "gpt-4",
+        const chatCompletion = await openai.createChatCompletion({
+            model: "gpt-3.5-turbo",
             messages: [
                 { role: "system", content: "Kamu adalah asisten AI yang ramah dan informatif." },
                 ...messages,
             ],
         });
 
-        const responseText = response.choices[0].message.content;
+        const responseText = chatCompletion.data.choices[0].message.content;
 
         // Tambahkan respons AI ke sesi
         messages.push({ role: "assistant", content: responseText });
@@ -102,3 +102,5 @@ async function handleAI(prompt, sessionId) {
 setInterval(() => {
     deleteOldSessions();
 }, 60 * 60 * 1000); // Setiap 1 jam
+
+// Contoh penggunaan
