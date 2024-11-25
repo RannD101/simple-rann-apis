@@ -1,7 +1,17 @@
-const { Configuration, OpenAIApi } = require("openai");
+// Fungsi untuk memuat OpenAI SDK secara dinamis
+async function loadOpenAI() {
+    try {
+        const { Configuration, OpenAIApi } = await import("openai");
+        return { Configuration, OpenAIApi };
+    } catch (error) {
+        console.error("Error loading OpenAI module:", error);
+        throw error;
+    }
+}
+
+// Direktori sesi sementara
 const fs = require("fs");
 const path = require("path");
-
 const sessionsDir = "/tmp/sessions"; // Direktori sementara di Vercel
 
 // Fungsi untuk membaca sesi
@@ -42,6 +52,9 @@ async function deleteOldSessions() {
 // Fungsi utama untuk menangani permintaan AI
 async function handleAI(prompt, sessionId) {
     try {
+        // Muat OpenAI SDK secara dinamis
+        const { Configuration, OpenAIApi } = await loadOpenAI();
+
         // Inisialisasi OpenAI dengan API key
         const configuration = new Configuration({
             apiKey: "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", // Ganti dengan API key kamu
@@ -90,4 +103,4 @@ setInterval(() => {
     deleteOldSessions();
 }, 60 * 60 * 1000); // Setiap 1 jam
 
-// Contoh pengguna
+// Contoh penggunaan
