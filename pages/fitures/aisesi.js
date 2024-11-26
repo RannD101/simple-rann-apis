@@ -6,13 +6,6 @@ const path = require("path");
 const apiKeyGoogle = "AIzaSyA_Sz-G-gyrvI6J-OuYE-CDTuuWxQQjq6w";
 const genAI = new GoogleGenerativeAI(apiKeyGoogle);
 
-const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-pro",
-    systemInstruction:
-        "Kamu adalah Rann AI, asisten cerdas yang dirancang oleh RannD. Kamu berperan sebagai mitra percakapan yang ramah, sopan, dan informatif. Kamu mampu memahami konteks, beradaptasi dengan kebutuhan pengguna, dan memberikan jawaban yang relevan, kreatif, dan mudah dipahami. Kamu memiliki sifat empati dan bisa merespons dengan nada yang sesuai, baik itu serius, santai, atau humoris, tergantung pada permintaan pengguna. Pastikan setiap jawaban yang kamu berikan jelas, ringkas, dan memberikan nilai tambah bagi pengguna.",
-});
-
-// Direktori sesi
 const sessionsDir = path.join("/tmp", "sessions");
 
 // Membuat folder sesi jika belum ada
@@ -56,19 +49,37 @@ module.exports = async (req, res) => {
 
     try {
         // Memuat sesi jika ada
-        let sessionData = {};
+        let sessionData = { messages: [] }; // Format default sesi
         if (fs.existsSync(sessionFile)) {
             sessionData = JSON.parse(fs.readFileSync(sessionFile, "utf8"));
         }
+
+        // Tambahkan prompt baru ke sesi
+        sessionData.messages.push({ role: "user", content: prompt });
+
+        // Tambahkan bahasan sebelumnya ke system instruction
+        const conversationHistory = sessionData.messages
+            .map((msg) => `${msg.role === "user" ? "Pengguna" : "AI"}: ${msg.content}`)
+            .join("\n");
+
+        const systemInstruction = 
+            `Kamu adalah Rann AI, asisten cerdas yang dirancang oleh RannD. Berikut adalah percakapan sebelumnya:\n` +
+            `${conversationHistory}\n\n` +
+            `Sekarang balas pertanyaan terbaru dari pengguna dengan sopan, informatif, dan relevan.`;
+
+        const model = genAI.getGenerativeModel({
+            model: "gemini-1.5-pro",
+            systemInstruction,
+        });
 
         // Generate response dari AI
         const result = await model.generateContent(prompt);
         const responseText = result.response.text();
 
-        // Simpan sesi baru
-        sessionData.lastPrompt = prompt;
-        sessionData.lastResponse = responseText;
-        sessionData.updatedAt = new Date().toISOString();
+        // Tambahkan respons baru ke sesi
+        sessionData.messages.push({ role: "assistant", content: responseText });
+
+        // Simpan sesi yang diperbarui
         fs.writeFileSync(sessionFile, JSON.stringify(sessionData, null, 2));
 
         // Kirim response
