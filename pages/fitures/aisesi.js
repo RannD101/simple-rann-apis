@@ -87,11 +87,16 @@ module.exports = async (req, res) => {
             .map((msg) => `${msg.role === "user" ? "Pengguna" : "AI"}: ${msg.content}`)
             .join("\n");
 
+        // Memanggil API dengan argumen yang sesuai
         const result = await model.generateContent({
-            prompt: `${systemInstruction}\n\nAI:`,
+            prompt: systemInstruction,
         });
 
-        const responseText = result.response.text();
+        // Periksa apakah respons valid
+        const responseText = result?.response?.text();
+        if (!responseText) {
+            throw new Error("Respons dari API tidak valid.");
+        }
 
         // Simpan respons AI ke sesi
         sessionData.messages.push({ role: "assistant", content: responseText });
