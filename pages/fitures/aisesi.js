@@ -69,7 +69,9 @@ module.exports = async (req, res) => {
 
         // Generate response dari AI
         const result = await model.generateContent(prompt);
-        const responseText = result.candidates[0]?.content || "Tidak ada respon dari AI.";
+
+        // Periksa apakah `candidates` tersedia dan tidak kosong
+        const responseText = result.candidates?.[0]?.content || "Tidak ada respon dari AI.";
 
         // Simpan sesi baru
         sessionData.lastPrompt = prompt;
