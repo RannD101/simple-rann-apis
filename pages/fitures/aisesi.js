@@ -6,6 +6,12 @@ const path = require("path");
 const apiKeyGoogle = "AIzaSyA_Sz-G-gyrvI6J-OuYE-CDTuuWxQQjq6w";
 const genAI = new GoogleGenerativeAI(apiKeyGoogle);
 
+const model = genAI.getGenerativeModel({
+    model: "gemini-1.5-pro",
+    systemInstruction:
+        "Kamu adalah Rann AI, asisten cerdas yang dirancang oleh RannD. Kamu berperan sebagai mitra percakapan yang ramah, sopan, dan informatif. Kamu mampu memahami konteks, beradaptasi dengan kebutuhan pengguna, dan memberikan jawaban yang relevan, kreatif, dan mudah dipahami. Kamu memiliki sifat empati dan bisa merespons dengan nada yang sesuai, baik itu serius, santai, atau humoris, tergantung pada permintaan pengguna. Pastikan setiap jawaban yang kamu berikan jelas, ringkas, dan memberikan nilai tambah bagi pengguna.",
+});
+
 // Direktori sesi
 const sessionsDir = path.join("/tmp", "sessions");
 
@@ -55,27 +61,31 @@ module.exports = async (req, res) => {
             sessionData = JSON.parse(fs.readFileSync(sessionFile, "utf8"));
         }
 
-        // Menyiapkan instruksi sistem dengan riwayat
-        const systemInstruction = 
-            "Kamu adalah Rann AI, asisten cerdas yang dirancang oleh RannD. " +
-            "Kamu berperan sebagai mitra percakapan yang ramah, sopan, dan informatif. " +
-            (sessionData.lastResponse ? `Riwayat terakhir: ${sessionData.lastResponse}` : "");
-
-        // Memperbarui model dengan instruksi sistem
-        const model = genAI.getGenerativeModel({
-            model: "gemini-1.5-pro",
-            systemInstruction,
-        });
+        // Menambahkan riwayat ke systemInstruction
+        const history = sessionData.history || [];
+        const systemInstruction = [
+            model.systemInstruction,
+            ...history.map(
+                (entry, idx) => `Percakapan ${idx + 1}: ${entry.prompt} -> ${entry.response}`
+            ),
+        ].join("\n");
 
         // Generate response dari AI
         const result = await model.generateContent(prompt);
+        console.log("AI Response Debug:", JSON.stringify(result, null, 2));
 
-        // Periksa apakah `candidates` tersedia dan tidak kosong
-        const responseText = result.candidates?.[0]?.content || "Tidak ada respon dari AI.";
+        // Validasi apakah `candidates` ada
+        if (!result.candidates || result.candidates.length === 0) {
+            throw new Error("Tidak ada respon yang dihasilkan oleh AI.");
+        }
+
+        const responseText = result.candidates[0].content;
 
         // Simpan sesi baru
-        sessionData.lastPrompt = prompt;
-        sessionData.lastResponse = responseText;
+        sessionData.history = [
+            ...(sessionData.history || []),
+            { prompt, response: responseText },
+        ];
         sessionData.updatedAt = new Date().toISOString();
         fs.writeFileSync(sessionFile, JSON.stringify(sessionData, null, 2));
 
