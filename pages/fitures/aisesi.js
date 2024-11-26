@@ -1,51 +1,57 @@
-const { GoogleGenerativeAI } = require("@google/generative-ai");
 const fs = require("fs");
 const path = require("path");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+const allowedApiKeys = require("../../declaration/arrayKey.jsx");
 
-// Konfigurasi GoogleGenerativeAI
 const apiKeyGoogle = "AIzaSyA_Sz-G-gyrvI6J-OuYE-CDTuuWxQQjq6w";
 const genAI = new GoogleGenerativeAI(apiKeyGoogle);
 
 const model = genAI.getGenerativeModel({
     model: "gemini-1.5-pro",
-    systemInstruction: "Kamu adalah Rann AI, asisten cerdas yang dirancang oleh RannD. Kamu berperan sebagai mitra percakapan yang ramah, sopan, dan informatif. Kamu mampu memahami konteks, beradaptasi dengan kebutuhan pengguna, dan memberikan jawaban yang relevan, kreatif, dan mudah dipahami. Kamu memiliki sifat empati dan bisa merespons dengan nada yang sesuai, baik itu serius, santai, atau humoris, tergantung pada permintaan pengguna. Pastikan setiap jawaban yang kamu berikan jelas, ringkas, dan memberikan nilai tambah bagi pengguna.",
+    systemInstruction: 
+        "Kamu adalah Rann AI, asisten cerdas yang dirancang oleh RannD. Kamu berperan sebagai mitra percakapan yang ramah, sopan, dan informatif. Kamu mampu memahami konteks, beradaptasi dengan kebutuhan pengguna, dan memberikan jawaban yang relevan, kreatif, dan mudah dipahami. Kamu memiliki sifat empati dan bisa merespons dengan nada yang sesuai, baik itu serius, santai, atau humoris, tergantung pada permintaan pengguna. Pastikan setiap jawaban yang kamu berikan jelas, ringkas, dan memberikan nilai tambah bagi pengguna.",
 });
 
-// Direktori untuk menyimpan sesi
-const sessionsDir = path.join("/tmp", "sessions");
+// Folder untuk menyimpan history percakapan
+const historyFolder = path.resolve(__dirname, "../../tmp");
 
-// Membuat folder sesi jika belum ada
-if (!fs.existsSync(sessionsDir)) {
-    fs.mkdirSync(sessionsDir, { recursive: true });
+if (!fs.existsSync(historyFolder)) {
+    fs.mkdirSync(historyFolder);
 }
 
-// Hapus sesi lama secara otomatis (3 jam)
-setInterval(() => {
-    const files = fs.readdirSync(sessionsDir);
-    const now = Date.now();
-    files.forEach((file) => {
-        const filePath = path.join(sessionsDir, file);
-        const stats = fs.statSync(filePath);
-        if (now - stats.mtimeMs > 3 * 60 * 60 * 1000) {
-            fs.unlinkSync(filePath);
-        }
-    });
-}, 60 * 60 * 1000); // Periksa setiap 1 jam
+// Fungsi untuk membaca history percakapan
+function readSessionHistory(sessionId) {
+    const filePath = path.join(historyFolder, `${sessionId}.json`);
+    if (fs.existsSync(filePath)) {
+        const history = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+        return history.slice(-10); // Ambil maksimal 10 percakapan terakhir
+    }
+    return [];
+}
+
+// Fungsi untuk menyimpan history percakapan
+function saveSessionHistory(sessionId, history) {
+    const filePath = path.join(historyFolder, `${sessionId}.json`);
+    fs.writeFileSync(filePath, JSON.stringify(history, null, 2), "utf-8");
+}
 
 module.exports = async (req, res) => {
-    const { prompt, sessionId } = req.method === "POST" ? req.body : req.query;
+    const { prompt, apiKey, sessionId } = req.method === "POST" ? req.body : req.query;
 
-    // Validasi sessionId
-    if (!sessionId || !/^[a-zA-Z0-9]{8,32}$/.test(sessionId)) {
-        return res.status(400).json({
+    if (!apiKey) {
+        return res.status(403).json({
             status: false,
-            msg: "Session ID tidak valid! Harus alphanumeric dan panjang 8-32 karakter.",
+            msg: "Input parameter 'apikey' diperlukan!",
         });
     }
 
-    const sessionFile = path.join(sessionsDir, `${sessionId}.json`);
+    if (!allowedApiKeys.includes(apiKey)) {
+        return res.status(403).json({
+            status: false,
+            msg: "Apikey tidak valid!",
+        });
+    }
 
-    // Validasi prompt
     if (!prompt) {
         return res.status(400).json({
             status: false,
@@ -53,48 +59,32 @@ module.exports = async (req, res) => {
         });
     }
 
+    if (!sessionId) {
+        return res.status(400).json({
+            status: false,
+            msg: "Parameter 'sessionId' diperlukan untuk melacak sesi percakapan!",
+        });
+    }
+
     try {
-        // Muat riwayat sesi
-        let sessionData = { history: [] };
-        if (fs.existsSync(sessionFile)) {
-            sessionData = JSON.parse(fs.readFileSync(sessionFile, "utf8"));
-        }
+        // Ambil history percakapan sebelumnya
+        const history = readSessionHistory(sessionId);
+        const context = history.map(entry => `User: ${entry.prompt}\nAI: ${entry.response}`).join("\n");
 
-        // Tambahkan riwayat ke system instruction
-        const historyText = sessionData.history
-            .map((entry) => `User: ${entry.prompt}\nRann AI: ${entry.response}`)
-            .join("\n\n");
+        // Tambahkan context ke prompt saat ini
+        const fullPrompt = `${context}\nUser: ${prompt}`;
 
-        const extendedSystemInstruction = `Konteks percakapan sebelumnya:\n${historyText}\n\nKamu adalah Rann AI, asisten cerdas yang dirancang oleh RannD. Kamu berperan sebagai mitra percakapan yang ramah, sopan, dan informatif. Kamu mampu memahami konteks, beradaptasi dengan kebutuhan pengguna, dan memberikan jawaban yang relevan, kreatif, dan mudah dipahami.`;
+        // Hasilkan respons dari AI
+        const result = await model.generateContent(fullPrompt);
+        const responseText = result.response.text();
 
-        const contextualModel = genAI.getGenerativeModel({
-            model: "gemini-1.5-pro",
-            systemInstruction: extendedSystemInstruction,
-        });
+        // Simpan percakapan ke history
+        history.push({ prompt, response: responseText });
+        saveSessionHistory(sessionId, history);
 
-        // Generate response dari AI
-        const result = await contextualModel.generateContent(prompt);
-
-        if (!result || !result.candidates || result.candidates.length === 0) {
-            throw new Error("AI tidak menghasilkan respon.");
-        }
-
-        const responseText = result.candidates[0].content;
-
-        // Simpan sesi baru
-        sessionData.history.push({
-            prompt: prompt,
-            response: responseText,
-            timestamp: new Date().toISOString(),
-        });
-
-        fs.writeFileSync(sessionFile, JSON.stringify(sessionData, null, 2));
-
-        // Kirim response
         return res.status(200).json({
             status: true,
             msg: "Success!",
-            session: sessionId,
             response: responseText,
         });
     } catch (error) {
@@ -103,7 +93,7 @@ module.exports = async (req, res) => {
         return res.status(500).json({
             status: false,
             msg: "Terjadi kesalahan dalam menghasilkan respon.",
-            response: error.message,
+            err: error.message,
         });
     }
 };
