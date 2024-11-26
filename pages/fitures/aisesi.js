@@ -8,11 +8,10 @@ const genAI = new GoogleGenerativeAI(apiKeyGoogle);
 
 const model = genAI.getGenerativeModel({
     model: "gemini-1.5-pro",
-    systemInstruction:
-        "Kamu adalah Rann AI, asisten cerdas yang dirancang oleh RannD. Kamu berperan sebagai mitra percakapan yang ramah, sopan, dan informatif. Kamu mampu memahami konteks, beradaptasi dengan kebutuhan pengguna, dan memberikan jawaban yang relevan, kreatif, dan mudah dipahami. Kamu memiliki sifat empati dan bisa merespons dengan nada yang sesuai, baik itu serius, santai, atau humoris, tergantung pada permintaan pengguna. Pastikan setiap jawaban yang kamu berikan jelas, ringkas, dan memberikan nilai tambah bagi pengguna.",
+    systemInstruction: "Kamu adalah Rann AI, asisten cerdas yang dirancang oleh RannD. Kamu berperan sebagai mitra percakapan yang ramah, sopan, dan informatif. Kamu mampu memahami konteks, beradaptasi dengan kebutuhan pengguna, dan memberikan jawaban yang relevan, kreatif, dan mudah dipahami. Kamu memiliki sifat empati dan bisa merespons dengan nada yang sesuai, baik itu serius, santai, atau humoris, tergantung pada permintaan pengguna. Pastikan setiap jawaban yang kamu berikan jelas, ringkas, dan memberikan nilai tambah bagi pengguna.",
 });
 
-// Direktori sesi
+// Direktori untuk menyimpan sesi
 const sessionsDir = path.join("/tmp", "sessions");
 
 // Membuat folder sesi jika belum ada
@@ -55,38 +54,40 @@ module.exports = async (req, res) => {
     }
 
     try {
-        // Memuat sesi jika ada
-        let sessionData = {};
+        // Muat riwayat sesi
+        let sessionData = { history: [] };
         if (fs.existsSync(sessionFile)) {
             sessionData = JSON.parse(fs.readFileSync(sessionFile, "utf8"));
         }
 
-        // Menambahkan riwayat ke systemInstruction
-        const history = sessionData.history || [];
-        const systemInstruction = [
-            model.systemInstruction,
-            ...history.map(
-                (entry, idx) => `Percakapan ${idx + 1}: ${entry.prompt} -> ${entry.response}`
-            ),
-        ].join("\n");
+        // Tambahkan riwayat ke system instruction
+        const historyText = sessionData.history
+            .map((entry) => `User: ${entry.prompt}\nRann AI: ${entry.response}`)
+            .join("\n\n");
+
+        const extendedSystemInstruction = `Konteks percakapan sebelumnya:\n${historyText}\n\nKamu adalah Rann AI, asisten cerdas yang dirancang oleh RannD. Kamu berperan sebagai mitra percakapan yang ramah, sopan, dan informatif. Kamu mampu memahami konteks, beradaptasi dengan kebutuhan pengguna, dan memberikan jawaban yang relevan, kreatif, dan mudah dipahami.`;
+
+        const contextualModel = genAI.getGenerativeModel({
+            model: "gemini-1.5-pro",
+            systemInstruction: extendedSystemInstruction,
+        });
 
         // Generate response dari AI
-        const result = await model.generateContent(prompt);
-        console.log("AI Response Debug:", JSON.stringify(result, null, 2));
+        const result = await contextualModel.generateContent(prompt);
 
-        // Validasi apakah `candidates` ada
-        if (!result.candidates || result.candidates.length === 0) {
-            throw new Error("Tidak ada respon yang dihasilkan oleh AI.");
+        if (!result || !result.candidates || result.candidates.length === 0) {
+            throw new Error("AI tidak menghasilkan respon.");
         }
 
         const responseText = result.candidates[0].content;
 
         // Simpan sesi baru
-        sessionData.history = [
-            ...(sessionData.history || []),
-            { prompt, response: responseText },
-        ];
-        sessionData.updatedAt = new Date().toISOString();
+        sessionData.history.push({
+            prompt: prompt,
+            response: responseText,
+            timestamp: new Date().toISOString(),
+        });
+
         fs.writeFileSync(sessionFile, JSON.stringify(sessionData, null, 2));
 
         // Kirim response
