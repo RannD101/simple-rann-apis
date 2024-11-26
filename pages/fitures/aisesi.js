@@ -1,43 +1,34 @@
-const fs = require("fs");
-const path = require("path");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const allowedApiKeys = require("../../declaration/arrayKey.jsx");
 
+// API Key Google Generative AI
 const apiKeyGoogle = "AIzaSyA_Sz-G-gyrvI6J-OuYE-CDTuuWxQQjq6w";
 const genAI = new GoogleGenerativeAI(apiKeyGoogle);
 
+// Mendapatkan model Generative
 const model = genAI.getGenerativeModel({
     model: "gemini-1.5-pro",
     systemInstruction: 
         "Kamu adalah Rann AI, asisten cerdas yang dirancang oleh RannD. Kamu berperan sebagai mitra percakapan yang ramah, sopan, dan informatif. Kamu mampu memahami konteks, beradaptasi dengan kebutuhan pengguna, dan memberikan jawaban yang relevan, kreatif, dan mudah dipahami. Kamu memiliki sifat empati dan bisa merespons dengan nada yang sesuai, baik itu serius, santai, atau humoris, tergantung pada permintaan pengguna. Pastikan setiap jawaban yang kamu berikan jelas, ringkas, dan memberikan nilai tambah bagi pengguna.",
 });
 
-// Folder untuk menyimpan history percakapan
-const historyFolder = path.resolve(__dirname, "../../tmp");
+// Menyimpan riwayat percakapan dalam memori
+let sessionHistory = {}; // Menyimpan history percakapan dalam memori (RAM)
 
-if (!fs.existsSync(historyFolder)) {
-    fs.mkdirSync(historyFolder);
-}
-
-// Fungsi untuk membaca history percakapan
+// Fungsi untuk membaca history percakapan dari memori
 function readSessionHistory(sessionId) {
-    const filePath = path.join(historyFolder, `${sessionId}.json`);
-    if (fs.existsSync(filePath)) {
-        const history = JSON.parse(fs.readFileSync(filePath, "utf-8"));
-        return history.slice(-10); // Ambil maksimal 10 percakapan terakhir
-    }
-    return [];
+    return sessionHistory[sessionId] || [];
 }
 
-// Fungsi untuk menyimpan history percakapan
+// Fungsi untuk menyimpan history percakapan ke dalam memori
 function saveSessionHistory(sessionId, history) {
-    const filePath = path.join(historyFolder, `${sessionId}.json`);
-    fs.writeFileSync(filePath, JSON.stringify(history, null, 2), "utf-8");
+    sessionHistory[sessionId] = history;
 }
 
 module.exports = async (req, res) => {
     const { prompt, apiKey, sessionId } = req.method === "POST" ? req.body : req.query;
 
+    // Validasi API Key
     if (!apiKey) {
         return res.status(403).json({
             status: false,
@@ -52,6 +43,7 @@ module.exports = async (req, res) => {
         });
     }
 
+    // Validasi prompt
     if (!prompt) {
         return res.status(400).json({
             status: false,
@@ -59,6 +51,7 @@ module.exports = async (req, res) => {
         });
     }
 
+    // Validasi sessionId
     if (!sessionId) {
         return res.status(400).json({
             status: false,
@@ -67,20 +60,26 @@ module.exports = async (req, res) => {
     }
 
     try {
-        // Ambil history percakapan sebelumnya
+        // Ambil history percakapan dari memori
         const history = readSessionHistory(sessionId);
-        const context = history.map(entry => `User: ${entry.prompt}\nAI: ${entry.response}`).join("\n");
 
-        // Tambahkan context ke prompt saat ini
+        // Gabungkan history percakapan dengan prompt untuk mempertahankan konteks percakapan
+        const context = history.map(entry => `User: ${entry.prompt}\nAI: ${entry.response}`).join("\n");
         const fullPrompt = `${context}\nUser: ${prompt}`;
 
-        // Hasilkan respons dari AI
+        // Hasilkan respons dari model generatif
         const result = await model.generateContent(fullPrompt);
         const responseText = result.response.text();
 
-        // Simpan percakapan ke history
+        // Simpan percakapan ke dalam memori
         history.push({ prompt, response: responseText });
-        saveSessionHistory(sessionId, history);
+
+        // Batasi riwayat percakapan yang disimpan, hanya 5 hingga 10 percakapan terakhir
+        if (history.length > 10) {
+            history.shift(); // Hapus percakapan pertama jika sudah lebih dari 10
+        }
+
+        saveSessionHistory(sessionId, history); // Simpan riwayat percakapan yang telah diperbarui
 
         return res.status(200).json({
             status: true,
