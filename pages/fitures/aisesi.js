@@ -14,8 +14,7 @@ if (!fs.existsSync(sessionDir)) {
 
 const model = genAI.getGenerativeModel({
     model: "gemini-1.5-pro",
-    systemInstruction:
-        "Kamu adalah Rann AI, asisten cerdas yang dirancang oleh RannD. Kamu berperan sebagai mitra percakapan yang ramah, sopan, dan informatif.",
+    systemInstruction: "Kamu adalah Rann AI, asisten cerdas yang dirancang oleh RannD. Kamu berperan sebagai mitra percakapan yang ramah, sopan, dan informatif.",
 });
 
 // Fungsi untuk membaca sesi dari file
@@ -82,12 +81,14 @@ module.exports = async (req, res) => {
         // Batasi riwayat ke 10 pesan terakhir
         sessionData.messages = sessionData.messages.slice(-10);
 
-        // Buat `systemInstruction` yang berisi riwayat sebelumnya
-        const systemInstruction = sessionData.messages
-            .map((msg) => `${msg.role === "user" ? "Pengguna" : "AI"}: ${msg.content}`)
-            .join("\n");
+        // Gabungkan riwayat percakapan ke dalam systemInstruction
+        const systemInstruction = `Kamu adalah Rann AI, asisten cerdas yang dirancang oleh RannD. Kamu berperan sebagai mitra percakapan yang ramah, sopan, dan informatif.\n\nRiwayat percakapan:\n` +
+            sessionData.messages
+                .map((msg) => `${msg.role === "user" ? "Pengguna" : "AI"}: ${msg.content}`)
+                .join("\n") +
+            `\n\nPrompt baru: ${prompt}`;
 
-        // Memanggil API dengan argumen yang sesuai
+        // Memanggil API dengan argumen yang diperbarui
         const result = await model.generateContent({
             prompt: systemInstruction,
         });
