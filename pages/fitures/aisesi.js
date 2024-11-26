@@ -1,117 +1,90 @@
-const { Configuration, OpenAIApi } = require("openai");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 const fs = require("fs");
 const path = require("path");
 
-// Konfigurasi OpenAI
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY, // API Key dari environment
+// Konfigurasi GoogleGenerativeAI
+const apiKeyGoogle = "AIzaSyA_Sz-G-gyrvI6J-OuYE-CDTuuWxQQjq6w";
+const genAI = new GoogleGenerativeAI(apiKeyGoogle);
+
+const model = genAI.getGenerativeModel({
+    model: "gemini-1.5-pro",
+    systemInstruction:
+        "Kamu adalah Rann AI, asisten cerdas yang dirancang oleh RannD. Kamu berperan sebagai mitra percakapan yang ramah, sopan, dan informatif. Kamu mampu memahami konteks, beradaptasi dengan kebutuhan pengguna, dan memberikan jawaban yang relevan, kreatif, dan mudah dipahami. Kamu memiliki sifat empati dan bisa merespons dengan nada yang sesuai, baik itu serius, santai, atau humoris, tergantung pada permintaan pengguna. Pastikan setiap jawaban yang kamu berikan jelas, ringkas, dan memberikan nilai tambah bagi pengguna.",
 });
-const openai = new OpenAIApi(configuration);
 
-// Fungsi untuk menyimpan data ke session file di /tmp
-function saveSessionData(sessionId, data) {
-  const sessionFilePath = path.join("/tmp", `${sessionId}.json`);
-  
-  // Simpan data session ke file
-  fs.writeFileSync(sessionFilePath, JSON.stringify(data));
+// Direktori sesi
+const sessionsDir = path.join("/tmp", "sessions");
+
+// Membuat folder sesi jika belum ada
+if (!fs.existsSync(sessionsDir)) {
+    fs.mkdirSync(sessionsDir, { recursive: true });
 }
 
-// Fungsi untuk membaca data session dari /tmp
-function loadSessionData(sessionId) {
-  const sessionFilePath = path.join("/tmp", `${sessionId}.json`);
-  
-  if (fs.existsSync(sessionFilePath)) {
-    return JSON.parse(fs.readFileSync(sessionFilePath));
-  }
-  
-  return null;
-}
+// Hapus sesi lama secara otomatis (3 jam)
+setInterval(() => {
+    const files = fs.readdirSync(sessionsDir);
+    const now = Date.now();
+    files.forEach((file) => {
+        const filePath = path.join(sessionsDir, file);
+        const stats = fs.statSync(filePath);
+        if (now - stats.mtimeMs > 3 * 60 * 60 * 1000) {
+            fs.unlinkSync(filePath);
+        }
+    });
+}, 60 * 60 * 1000); // Periksa setiap 1 jam
 
-// Fungsi untuk menghapus session setelah lebih dari 3 jam
-function deleteSessionIfExpired(sessionId) {
-  const sessionFilePath = path.join("/tmp", `${sessionId}.json`);
-  
-  if (fs.existsSync(sessionFilePath)) {
-    const sessionData = JSON.parse(fs.readFileSync(sessionFilePath));
-    
-    // Cek apakah sesi sudah lebih dari 3 jam
-    const currentTime = Date.now();
-    const sessionTimestamp = sessionData.timestamp;
-
-    // Jika lebih dari 3 jam (3 jam = 3 * 60 * 60 * 1000 ms)
-    if (currentTime - sessionTimestamp > 3 * 60 * 60 * 1000) {
-      fs.unlinkSync(sessionFilePath); // Hapus file sesi
-      console.log(`Session ${sessionId} telah dihapus karena sudah lebih dari 3 jam.`);
-    }
-  }
-}
-
-// Fungsi untuk melakukan percakapan dengan OpenAI
-const chatCompletion = async (prompt) => {
-  const response = await openai.createChatCompletion({
-    model: "gpt-3.5-turbo",
-    messages: [{ role: "user", content: prompt }],
-  });
-  return response.data.choices[0].message.content;
-};
-
-// Fungsi untuk menangani permintaan API
 module.exports = async (req, res) => {
-  const { prompt, sessionId } = req.body;  // Menerima sessionId dari body request
+    const { prompt, sessionId } = req.method === "POST" ? req.body : req.query;
 
-  // Validasi session ID (misalnya harus alphanumeric dengan panjang 8-32 karakter)
-  const sessionIdRegex = /^[a-zA-Z0-9]{8,32}$/;
-  if (!sessionId || !sessionIdRegex.test(sessionId)) {
-    return res.status(400).json({
-      status: false,
-      msg: "Session ID tidak valid! Harus alphanumeric dan panjang 8-32 karakter.",
-    });
-  }
-
-  // Validasi parameter 'prompt'
-  if (!prompt) {
-    return res.status(400).json({
-      status: false,
-      msg: "Parameter 'prompt' tidak ditemukan!",
-    });
-  }
-
-  try {
-    // Hapus session yang sudah lebih dari 3 jam
-    deleteSessionIfExpired(sessionId);
-
-    // Cek apakah session ID sudah ada, jika ada muat data sebelumnya
-    const sessionData = loadSessionData(sessionId);
-
-    // Jika tidak ada data sebelumnya, buat session baru
-    if (!sessionData) {
-      saveSessionData(sessionId, { promptHistory: [], timestamp: Date.now() }); // Simpan history prompt dan timestamp untuk session baru
+    // Validasi sessionId
+    if (!sessionId || !/^[a-zA-Z0-9]{8,32}$/.test(sessionId)) {
+        return res.status(400).json({
+            status: false,
+            msg: "Session ID tidak valid! Harus alphanumeric dan panjang 8-32 karakter.",
+        });
     }
 
-    // Melakukan percakapan dengan OpenAI
-    const result = await chatCompletion(prompt);
-    
-    // Update data sesi dengan hasil percakapan
-    const updatedSessionData = loadSessionData(sessionId);
-    updatedSessionData.promptHistory.push({ prompt, response: result });
+    const sessionFile = path.join(sessionsDir, `${sessionId}.json`);
 
-    // Simpan data sesi setelah update
-    saveSessionData(sessionId, updatedSessionData);
+    // Validasi prompt
+    if (!prompt) {
+        return res.status(400).json({
+            status: false,
+            msg: "Parameter 'prompt' tidak ditemukan!",
+        });
+    }
 
-    // Kirim respon ke pengguna
-    res.status(200).json({
-      status: true,
-      msg: "Success!",
-      response: result,
-      sessionId: sessionId,
-      promptHistory: updatedSessionData.promptHistory,
-    });
-  } catch (error) {
-    console.error("Error generating content:", error);
-    res.status(500).json({
-      status: false,
-      msg: "Terjadi kesalahan dalam menghasilkan respon.",
-      response: error.message,
-    });
-  }
+    try {
+        // Memuat sesi jika ada
+        let sessionData = {};
+        if (fs.existsSync(sessionFile)) {
+            sessionData = JSON.parse(fs.readFileSync(sessionFile, "utf8"));
+        }
+
+        // Generate response dari AI
+        const result = await model.generateContent(prompt);
+        const responseText = result.response.text();
+
+        // Simpan sesi baru
+        sessionData.lastPrompt = prompt;
+        sessionData.lastResponse = responseText;
+        sessionData.updatedAt = new Date().toISOString();
+        fs.writeFileSync(sessionFile, JSON.stringify(sessionData, null, 2));
+
+        // Kirim response
+        return res.status(200).json({
+            status: true,
+            msg: "Success!",
+            session: sessionId,
+            response: responseText,
+        });
+    } catch (error) {
+        console.error("Error generating content:", error);
+
+        return res.status(500).json({
+            status: false,
+            msg: "Terjadi kesalahan dalam menghasilkan respon.",
+            response: error.message,
+        });
+    }
 };
