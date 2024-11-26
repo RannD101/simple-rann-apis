@@ -85,16 +85,15 @@ module.exports = async (req, res) => {
         const systemInstruction = `Kamu adalah Rann AI, asisten cerdas yang dirancang oleh RannD. Kamu berperan sebagai mitra percakapan yang ramah, sopan, dan informatif.\n\nRiwayat percakapan:\n` +
             sessionData.messages
                 .map((msg) => `${msg.role === "user" ? "Pengguna" : "AI"}: ${msg.content}`)
-                .join("\n") +
-            `\n\nPrompt baru: ${prompt}`;
+                .join("\n");
 
-        // Memanggil API dengan argumen yang diperbarui
+        // Memanggil API dengan prompt yang sesuai
         const result = await model.generateContent({
-            prompt: systemInstruction,
+            text: `${systemInstruction}\n\nPrompt baru: ${prompt}`,
         });
 
         // Periksa apakah respons valid
-        const responseText = result?.response?.text();
+        const responseText = result?.text?.trim();
         if (!responseText) {
             throw new Error("Respons dari API tidak valid.");
         }
