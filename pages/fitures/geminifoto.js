@@ -1,4 +1,4 @@
-const fetch = require("node-fetch");
+const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 const crypto = require("crypto");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const allowedApiKeys = require("../../declaration/arrayKey.jsx"); // Assuming allowed API keys are imported here
