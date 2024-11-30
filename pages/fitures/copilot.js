@@ -37,7 +37,7 @@ module.exports = async (req, res) => {
             cookie: cookieValue,
         });
 
-        let responseText = response.data?.text;
+        const responseText = response.data?.text;
 
         if (!responseText) {
             return res.status(500).json({
@@ -49,20 +49,24 @@ module.exports = async (req, res) => {
         // Debugging - Periksa respons asli
         console.log("Original Response Text:", responseText);
 
-        // Menghapus semua tanda [^angka^]
-        responseText = responseText.replace(/\^[0-9]+\^/g, ''); // Hilangkan tanda sepenuhnya
+        // Salin respons asli ke variabel baru untuk modifikasi
+        let responseText1 = responseText;
 
-        // Ubah tanda ** menjadi *
-        responseText = responseText.replace(/\*\*(.*?)\*\*/g, '*$1*');
+        // Langkah 1: Hapus semua tanda [^angka^]
+        responseText1 = responseText1.replace(/\^[0-9]+\^/g, '');
 
-        // Debugging - Periksa setelah modifikasi
-        console.log("Modified Response Text:", responseText);
+        // Langkah 2: Ubah tanda ** menjadi *
+        responseText1 = responseText1.replace(/\*\*(.*?)\*\*/g, '*$1*');
+
+        // Debugging - Periksa hasil modifikasi
+        console.log("Modified Response Text:", responseText1);
 
         // Respons sukses
         return res.status(200).json({
             status: true,
             msg: "Success!",
-            response: responseText,
+            original: responseText, // Respons asli
+            response: responseText1, // Respons setelah dimodifikasi
         });
     } catch (error) {
         console.error("Error processing request:", error);
