@@ -49,27 +49,21 @@ module.exports = async (req, res) => {
         // Debugging - Periksa respons asli
         console.log("Original Response Text:", responseText);
 
-        // Salin respons asli ke variabel baru untuk modifikasi
-        let responseText1 = responseText;
-
-        // Langkah 1: Hapus semua tanda [^angka^] secara eksplisit
-        responseText1 = responseText1.replace(/\^[0-9]+\^/g, "");
-
-        // Debugging - Tampilkan hasil setelah langkah pertama
+        // Langkah 1: Hapus semua tanda [^angka^]
+        const responseText1 = responseText.replace(/\^[0-9]+\^/g, "");
         console.log("After Removing [^angka^]:", responseText1);
 
         // Langkah 2: Ubah tanda ** menjadi *
-        responseText1 = responseText1.replace(/\*\*(.*?)\*\*/g, "*$1*");
-
-        // Debugging - Periksa hasil modifikasi akhir
-        console.log("Final Modified Response Text:", responseText1);
+        const responseText2 = responseText1.replace(/\*\*(.*?)\*\*/g, "*$1*");
+        console.log("After Replacing ** with *:", responseText2);
 
         // Respons sukses
         return res.status(200).json({
             status: true,
             msg: "Success!",
             original: responseText, // Respons asli
-            response: responseText1, // Respons setelah dimodifikasi
+            modified: responseText1, // Respons setelah langkah pertama
+            final: responseText2, // Respons akhir setelah semua modifikasi
         });
     } catch (error) {
         console.error("Error processing request:", error);
