@@ -49,11 +49,20 @@ module.exports = async (req, res) => {
         // Debugging - Periksa respons asli
         console.log("Original Response Text:", responseText);
 
-        // Langkah 1: Hapus semua tanda [^angka^]
-        const responseText1 = responseText.replace(/\^[0-9]+\^/g, "");
+        // Langkah 1: Hapus semua tanda [^angka^] menggunakan regex
+        let responseText1 = responseText.replace(/\^[0-9]+\^/g, "");
         console.log("After Removing [^angka^]:", responseText1);
 
-        // Langkah 2: Ubah tanda ** menjadi *
+        // Langkah 2: Jika regex gagal, lakukan pembersihan manual
+        responseText1 = responseText1
+            .split("[^")
+            .map(part => part.replace(/\d+\^]/, ""))
+            .join("");
+
+        // Debugging - Periksa hasil setelah pembersihan manual
+        console.log("After Manual Cleanup:", responseText1);
+
+        // Langkah 3: Ubah tanda ** menjadi *
         const responseText2 = responseText1.replace(/\*\*(.*?)\*\*/g, "*$1*");
         console.log("After Replacing ** with *:", responseText2);
 
