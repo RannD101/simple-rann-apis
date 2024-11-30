@@ -37,7 +37,7 @@ module.exports = async (req, res) => {
             cookie: cookieValue,
         });
 
-        const responseText = response.data?.text;
+        let responseText = response.data?.text;
 
         if (!responseText) {
             return res.status(500).json({
@@ -45,6 +45,11 @@ module.exports = async (req, res) => {
                 msg: "Tidak ada data yang dikembalikan dari API eksternal.",
             });
         }
+
+        // Menghilangkan tanda [^angka^] dan mengubah ** menjadi *
+        responseText = responseText
+            .replace(/\^.*?\^/g, '')  // Menghapus tanda [^angka^]
+            .replace(/\*\*(.*?)\*\*/g, '*$1*'); // Mengganti **...** menjadi *...*
 
         // Respons sukses
         return res.status(200).json({
