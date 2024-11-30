@@ -48,8 +48,9 @@ module.exports = async (req, res) => {
 
         // Menghilangkan tanda [^angka^] dan mengganti ** menjadi *
         responseText = responseText
-            .replace(/\^.*?\^/g, '\n')   // Ganti tanda [^angka^] menjadi \n
-            .replace(/\*\*(.*?)\*\*/g, '*$1*'); // Mengganti **...** menjadi *...*
+            .replace(/\^.*?\^/g, '\n')    // Ganti tanda [^angka^] dengan \n
+            .replace(/\*\*(.*?)\*\*/g, '*$1*') // Ganti **text** menjadi *text*
+            .replace(/\^.*?\^/g, '\n');    // Cek dan pastikan penggantian sudah benar
 
         // Respons sukses
         return res.status(200).json({
