@@ -70,9 +70,8 @@ module.exports = async (req, res) => {
         return res.status(200).json({
             status: true,
             msg: "Success!",
-            original: responseText, // Respons asli
-            modified: responseText1, // Respons setelah langkah pertama
-            final: responseText2, // Respons akhir setelah semua modifikasi
+            Owner: "Rann",
+            response: responseText2, // Respons akhir setelah semua modifikasi
         });
     } catch (error) {
         console.error("Error processing request:", error);
