@@ -52,14 +52,17 @@ module.exports = async (req, res) => {
         // Salin respons asli ke variabel baru untuk modifikasi
         let responseText1 = responseText;
 
-        // Langkah 1: Hapus semua tanda [^angka^]
-        responseText1 = responseText1.replace(/\^[0-9]+\^/g, '');
+        // Langkah 1: Hapus semua tanda [^angka^] secara eksplisit
+        responseText1 = responseText1.replace(/\^[0-9]+\^/g, "");
+
+        // Debugging - Tampilkan hasil setelah langkah pertama
+        console.log("After Removing [^angka^]:", responseText1);
 
         // Langkah 2: Ubah tanda ** menjadi *
-        responseText1 = responseText1.replace(/\*\*(.*?)\*\*/g, '*$1*');
+        responseText1 = responseText1.replace(/\*\*(.*?)\*\*/g, "*$1*");
 
-        // Debugging - Periksa hasil modifikasi
-        console.log("Modified Response Text:", responseText1);
+        // Debugging - Periksa hasil modifikasi akhir
+        console.log("Final Modified Response Text:", responseText1);
 
         // Respons sukses
         return res.status(200).json({
