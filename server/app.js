@@ -51,6 +51,9 @@ app.get("/ai/geminiImage", limit, async (req, res) => {
     require("../pages/fitures/geminifoto.js")(req, res);
 });
 
+app.get("/ai/copilotai", limit, async (req, res) => {
+    require("../pages/fitures/copilot.js")(req, res);
+});
 
 app.post("/ai/rannaisesi", limit, async (req, res) => {
     try {
