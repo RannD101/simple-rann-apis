@@ -46,11 +46,11 @@ module.exports = async (req, res) => {
             });
         }
 
-        // Menghilangkan tanda [^angka^] dan mengganti ** menjadi *
-        responseText = responseText
-            .replace(/\^.*?\^/g, '\n')    // Ganti tanda [^angka^] dengan \n
-            .replace(/\*\*(.*?)\*\*/g, '*$1*') // Ganti **text** menjadi *text*
-            .replace(/\^.*?\^/g, '\n');    // Cek dan pastikan penggantian sudah benar
+        // Langkah 1: Hapus semua tanda [^angka^]
+        responseText = responseText.replace(/\^[0-9]+\^/g, '\n');
+
+        // Langkah 2: Ubah tanda ** menjadi *
+        responseText = responseText.replace(/\*\*(.*?)\*\*/g, '*$1*');
 
         // Respons sukses
         return res.status(200).json({
