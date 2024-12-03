@@ -31,6 +31,10 @@ app.get("/dl", limit, (req, res) => {
     res.sendFile(path.join(__dirname, "../pages/dl.html"));
 });
 
+app.get("/cekip", limit, (req, res) => {
+    res.sendFile(path.join(__dirname, "../pages/cekip.html"));
+});
+
 app.get("/random", limit, (req, res) => {
     res.sendFile(path.join(__dirname, "../pages/random.html"));
 });
