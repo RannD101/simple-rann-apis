@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website Cek IP</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--bg-color, #f4f4f9);
+            color: var(--text-color, #333);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .fade-in {
+            animation: fadeIn 2s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .container {
+            text-align: center;
+            background: var(--container-bg, white);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .container h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .container input {
+            width: 80%;
+            padding: 10px;
+            margin-bottom: 10px ;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .container button {
+            padding: 10px 20px;
+            font-size: 16px;
+            color: white;
+            background-color: #007BFF;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .container button:hover {
+            background-color: #0056b3;
+        }
+
+        .ip-display, .details {
+            margin-top: 20px;
+            font-size: 16px;
+        }
+
+        .dark-mode {
+            --bg-color: #333;
+            --text-color: #f4f4f9;
+            --container-bg: #444;
+        }
+
+        .toggle-theme {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px;
+            background: var(--container-bg, white);
+            color: var(--text-color, black);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .toggle-theme:hover {
+            background: #666;
+        }
+
+    </style>
+</head>
+<body class="fade-in">
+    <button class="toggle-theme" onclick="toggleTheme()">Dark Mode</button>
+    <button id="playBacksound" class="toggle-theme" style="top: 60px;" onclick="toggleBacksound()">Play Backsound</button>
+    <audio id="backsound" loop>
+        <source src="https://files.catbox.moe/p5htu5.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+    <div class="container">
+        <h1>Cek Alamat IP</h1>
+        <input type="text" id="ipInput" placeholder="Masukkan IP (Opsional)">
+        <button onclick="getIPAddress()">Cek IP</button>
+        <div class="ip-display" id="ipDisplay">IP Anda akan tampil di sini.</div>
+        <div class="details" id="details"></div>
+    </div>
+
+    <script>
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+        }
+
+        function toggleBacksound() {
+            const audio = document.getElementById('backsound');
+            const button = document.getElementById('playBacksound');
+            if (audio.paused) {
+                audio.play();
+                button.textContent = 'Pause Backsound';
+            } else {
+                audio.pause();
+                button.textContent = 'Play Backsound';
+            }
+        }
+
+        function getIPAddress() {
+            const ipDisplay = document.getElementById('ipDisplay');
+            const details = document.getElementById('details');
+            const ipInput = document.getElementById('ipInput').value.trim();
+
+            ipDisplay.textContent = 'Sedang mengambil data...';
+            details.textContent = '';
+
+            if (ipInput) {
+                fetchIPDetails(ipInput);
+            } else {
+                fetch('https://api64.ipify.org?format=json')
+                    .then(response => response.json())
+                    .then(data => {
+                        ipDisplay.textContent = `IP Address: ${data.ip}`;
+                        fetchIPDetails(data.ip);
+                    })
+                    .catch(error => {
+                        ipDisplay.textContent = 'Gagal mengambil IP. Coba lagi nanti.';
+                        console.error('Error fetching IP:', error);
+                    });
+            }
+        }
+
+        function fetchIPDetails(ip) {
+            const details = document.getElementById('details');
+
+            fetch(`https://ipfind.co/?ip=${ip}&auth=c4fae2fc-7900-4819-8c0e-77776244d479`)
+                .then(response => response.json())
+                .then(data => {
+                    details.innerHTML = `
+                        <p>IP Address: ${data.ip_address}</p>
+                        <p>Country: ${data.country} (${data.country_code})</p>
+                        <p>City: ${data.city}</p>
+                        <p>Region: ${data.region}</p>
+                        <p>Continent: ${data.continent}</p>
+                        <p>Timezone: ${data.timezone}</p>
+                        <p>Latitude: ${data.latitude}</p>
+                        <p>Longitude: ${data.longitude}</p>
+                        <p>Currency: ${data.currency}</p>
+                        <p>Languages: ${data.languages ? data.languages.join(', ') : 'N/A'}</p>
+                    `;
+                })
+                .catch(error => {
+                    details.textContent = 'Gagal mengambil data. Coba lagi nanti.';
+                    console.error('Error fetching IP details:', error);
+                });
+        }
+    </script>
+
+    <!-- Include jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</body>
+</html>
