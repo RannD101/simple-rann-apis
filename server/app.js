@@ -51,6 +51,10 @@ app.get("/ai/rannai", limit, async (req, res) => {
     require("../pages/fitures/rannai.js")(req, res);
 });
 
+app.get("/ai/rannkhusus", limit, async (req, res) => {
+    require("../pages/fitures/rannkhusus.js")(req, res);
+});
+
 app.get("/ai/geminiImage", limit, async (req, res) => {
     require("../pages/fitures/geminifoto.js")(req, res);
 });
